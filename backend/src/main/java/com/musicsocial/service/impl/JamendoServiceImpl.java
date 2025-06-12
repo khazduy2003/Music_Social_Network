@@ -1,7 +1,6 @@
 package com.musicsocial.service.impl;
 
 import com.musicsocial.dto.track.TrackDTO;
-import com.musicsocial.dto.comment.CommentDTO;
 import com.musicsocial.service.JamendoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +15,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -113,7 +111,6 @@ public class JamendoServiceImpl implements JamendoService {
                 .queryParam("format", "json")
                 .queryParam("limit", pageable.getPageSize())
                 .queryParam("offset", pageable.getPageNumber() * pageable.getPageSize())
-                .queryParam("include", "comments")
                 .build()
                 .toUriString();
 
@@ -182,32 +179,6 @@ public class JamendoServiceImpl implements JamendoService {
             
             dto.setAudioUrl((String) data.get("audio"));
             dto.setImageUrl((String) data.get("image"));
-
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> comments = (List<Map<String, Object>>) data.get("comments");
-            if (comments != null) {
-                List<CommentDTO> commentDTOs = comments.stream()
-                    .map(comment -> {
-                        CommentDTO commentDTO = new CommentDTO();
-                        commentDTO.setContent((String) comment.get("content"));
-                        commentDTO.setUsername((String) comment.get("user_name"));
-                        commentDTO.setUserId(Long.parseLong(comment.get("user_id").toString()));
-                        commentDTO.setTrackId(Long.parseLong(data.get("id").toString()));
-                        commentDTO.setCreatedAt(LocalDateTime.ofInstant(
-                            Instant.ofEpochSecond(Long.parseLong(comment.get("created").toString())),
-                            ZoneId.systemDefault()
-                        ));
-                        commentDTO.setUpdatedAt(LocalDateTime.ofInstant(
-                            Instant.ofEpochSecond(Long.parseLong(comment.get("updated").toString())),
-                            ZoneId.systemDefault()
-                        ));
-                        commentDTO.setLikesCount((Integer) comment.get("likes_count"));
-                        commentDTO.setIsLiked(false); // Default value
-                        return commentDTO;
-                    })
-                    .collect(Collectors.toList());
-                dto.setComments(commentDTOs);
-            }
 
             return dto;
         } catch (Exception e) {

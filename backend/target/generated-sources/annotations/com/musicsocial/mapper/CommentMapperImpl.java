@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-06-12T18:13:17+0700",
-    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.42.0.v20250514-1000, environment: Java 21.0.7 (Eclipse Adoptium)"
+    date = "2025-06-13T00:23:34+0700",
+    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.15 (Oracle Corporation)"
 )
 @Component
 public class CommentMapperImpl implements CommentMapper {
@@ -42,9 +42,9 @@ public class CommentMapperImpl implements CommentMapper {
             commentDTO.setUserId( commentUserId( comment ) );
             commentDTO.setUsername( commentUserUsername( comment ) );
             commentDTO.setTrackId( commentTrackId( comment ) );
+            commentDTO.setId( comment.getId() );
             commentDTO.setContent( comment.getContent() );
             commentDTO.setCreatedAt( comment.getCreatedAt() );
-            commentDTO.setId( comment.getId() );
             commentDTO.setUpdatedAt( comment.getUpdatedAt() );
         }
         commentDTO.setLikesCount( comment.getLikedBy().size() );

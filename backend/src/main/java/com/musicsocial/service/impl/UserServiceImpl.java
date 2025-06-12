@@ -8,6 +8,8 @@ import com.musicsocial.exception.ResourceNotFoundException;
 import com.musicsocial.mapper.UserMapper;
 import com.musicsocial.repository.UserRepository;
 import com.musicsocial.service.UserService;
+import com.musicsocial.service.NotificationService;
+import com.musicsocial.dto.notification.NotificationCreateDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -26,6 +28,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -112,6 +115,22 @@ public class UserServiceImpl implements UserService {
 
         follower.getFollowing().add(following);
         userRepository.save(follower);
+        
+        // Send notification to the followed user
+        try {
+            NotificationCreateDTO notificationDTO = NotificationCreateDTO.builder()
+                    .senderId(followerId)
+                    .receiverId(followingId)
+                    .message(follower.getUsername() + " started following you")
+                    .type("FOLLOW")
+                    .itemType("user")
+                    .itemId(followerId)
+                    .build();
+            notificationService.createNotification(notificationDTO);
+        } catch (Exception e) {
+            // Log error but don't fail the follow operation
+            log.warn("Failed to send follow notification from {} to {}: {}", followerId, followingId, e.getMessage());
+        }
     }
 
     @Override

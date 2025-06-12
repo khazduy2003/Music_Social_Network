@@ -289,6 +289,18 @@ export const trackService = {
     }
   },
 
+  // Get all tracks for discover page (sorted A-Z, no pagination)
+  getAllTracksForDiscover: async () => {
+    try {
+      const userId = JSON.parse(localStorage.getItem('user'))?.id;
+      const response = await api.get(`/tracks/all-for-discover${userId ? `?userId=${userId}` : ''}`);
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching all tracks for discover:', error);
+      return [];
+    }
+  },
+
   // User Preferences API calls
   getUserPreferences: async () => {
     try {

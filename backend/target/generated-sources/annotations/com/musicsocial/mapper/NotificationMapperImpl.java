@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-06-12T18:13:17+0700",
-    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.42.0.v20250514-1000, environment: Java 21.0.7 (Eclipse Adoptium)"
+    date = "2025-06-13T00:23:33+0700",
+    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.15 (Oracle Corporation)"
 )
 @Component
 public class NotificationMapperImpl extends NotificationMapper {
@@ -28,10 +28,10 @@ public class NotificationMapperImpl extends NotificationMapper {
 
         notification.sender( idToUser( dto.getSenderId() ) );
         notification.receiver( idToUser( dto.getReceiverId() ) );
-        notification.itemId( dto.getItemId() );
-        notification.itemType( dto.getItemType() );
         notification.message( dto.getMessage() );
         notification.type( dto.getType() );
+        notification.itemType( dto.getItemType() );
+        notification.itemId( dto.getItemId() );
 
         notification.read( false );
         notification.createdAt( java.time.LocalDateTime.now() );
@@ -50,13 +50,13 @@ public class NotificationMapperImpl extends NotificationMapper {
 
         notificationDTO.sender( userMapper.toDTO( notification.getSender() ) );
         notificationDTO.receiver( userMapper.toDTO( notification.getReceiver() ) );
-        notificationDTO.createdAt( notification.getCreatedAt() );
         notificationDTO.id( notification.getId() );
-        notificationDTO.itemId( notification.getItemId() );
-        notificationDTO.itemType( notification.getItemType() );
         notificationDTO.message( notification.getMessage() );
-        notificationDTO.read( notification.isRead() );
         notificationDTO.type( notification.getType() );
+        notificationDTO.itemType( notification.getItemType() );
+        notificationDTO.itemId( notification.getItemId() );
+        notificationDTO.read( notification.isRead() );
+        notificationDTO.createdAt( notification.getCreatedAt() );
         notificationDTO.updatedAt( notification.getUpdatedAt() );
 
         return notificationDTO.build();

@@ -39,11 +39,14 @@ public class UserPreferenceServiceImpl implements UserPreferenceService {
     @Override
     @Transactional(readOnly = true)
     public UserPreferenceDTO getUserPreferences(Long userId) {
-        UserPreference preferences = userPreferenceRepository.findByUserId(userId)
+        UserPreference preferences = userPreferenceRepository.findByUserIdWithUser(userId)
                 .orElseGet(() -> {
                     // Tạo empty preferences nếu chưa có thay vì throw exception
                     log.info("No existing preferences found for user {}, creating empty preferences", userId);
+                    User user = userRepository.findById(userId)
+                            .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
                     UserPreference newPreferences = new UserPreference();
+                    newPreferences.setUser(user);
                     newPreferences.setPreferredArtists(new HashSet<>());
                     newPreferences.setPreferredGenres(new HashSet<>());
                     return newPreferences;

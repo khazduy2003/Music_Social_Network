@@ -22,6 +22,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 import com.musicsocial.service.ListeningHistoryService;
+import com.musicsocial.service.NotificationService;
+import com.musicsocial.dto.notification.NotificationCreateDTO;
+import com.musicsocial.domain.Track;
+import com.musicsocial.domain.User;
+import com.musicsocial.repository.TrackRepository;
+import com.musicsocial.repository.UserRepository;
 
 @RestController
 @RequestMapping("/api/tracks")
@@ -30,10 +36,13 @@ import com.musicsocial.service.ListeningHistoryService;
 public class TrackController {
     private final TrackService trackService;
     private final JamendoDataScheduler jamendoDataScheduler;
+    private final ListeningHistoryService listeningHistoryService;
+    private final NotificationService notificationService;
+    private final TrackRepository trackRepository;
+    private final UserRepository userRepository;
     @Autowired
     private RestTemplate restTemplate;
     private static final Logger log = LoggerFactory.getLogger(TrackController.class);
-    private final ListeningHistoryService listeningHistoryService;
 
     @GetMapping("/{id}")
     public ResponseEntity<TrackDTO> getTrackById(
@@ -87,6 +96,27 @@ public class TrackController {
     @PostMapping("/{trackId}/like/{userId}")
     public ResponseEntity<Void> likeTrack(@PathVariable Long userId, @PathVariable Long trackId) {
         trackService.likeTrack(userId, trackId);
+        
+        // Send notification to track owner
+        try {
+            User user = userRepository.findById(userId).orElse(null);
+            Track track = trackRepository.findById(trackId).orElse(null);
+            
+            if (user != null && track != null && !userId.equals(track.getUser().getId())) {
+                NotificationCreateDTO notificationDTO = NotificationCreateDTO.builder()
+                        .senderId(userId)
+                        .receiverId(track.getUser().getId())
+                        .message(user.getUsername() + " liked your track \"" + track.getTitle() + "\"")
+                        .type("LIKE")
+                        .itemType("track")
+                        .itemId(trackId)
+                        .build();
+                notificationService.createNotification(notificationDTO);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to send track like notification: {}", e.getMessage());
+        }
+        
         return ResponseEntity.ok().build();
     }
 
@@ -233,6 +263,12 @@ public class TrackController {
             log.error("Error uploading track", e);
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    @GetMapping("/all-for-discover")
+    public ResponseEntity<List<TrackDTO>> getAllTracksForDiscover(
+            @RequestParam(required = false) Long userId) {
+        return ResponseEntity.ok(trackService.getAllTracksForDiscover(userId));
     }
 
     private Long getCurrentUserId() {

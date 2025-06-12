@@ -1,26 +1,22 @@
 package com.musicsocial.mapper;
 
-import com.musicsocial.domain.Comment;
 import com.musicsocial.domain.Playlist;
 import com.musicsocial.domain.Track;
 import com.musicsocial.domain.User;
-import com.musicsocial.dto.comment.CommentDTO;
 import com.musicsocial.dto.playlist.PlaylistCreateDTO;
 import com.musicsocial.dto.playlist.PlaylistDTO;
 import com.musicsocial.dto.playlist.PlaylistUpdateDTO;
 import com.musicsocial.dto.track.TrackDTO;
 import com.musicsocial.dto.user.UserDTO;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import javax.annotation.processing.Generated;
 import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-06-12T18:13:16+0700",
-    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.42.0.v20250514-1000, environment: Java 21.0.7 (Eclipse Adoptium)"
+    date = "2025-06-13T00:23:32+0700",
+    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.15 (Oracle Corporation)"
 )
 @Component
 public class PlaylistMapperImpl implements PlaylistMapper {
@@ -33,10 +29,10 @@ public class PlaylistMapperImpl implements PlaylistMapper {
 
         Playlist playlist = new Playlist();
 
-        playlist.setCoverImageUrl( dto.getCoverImageUrl() );
-        playlist.setDescription( dto.getDescription() );
-        playlist.setIsPublic( dto.getIsPublic() );
         playlist.setName( dto.getName() );
+        playlist.setDescription( dto.getDescription() );
+        playlist.setCoverImageUrl( dto.getCoverImageUrl() );
+        playlist.setIsPublic( dto.getIsPublic() );
 
         return playlist;
     }
@@ -53,11 +49,11 @@ public class PlaylistMapperImpl implements PlaylistMapper {
         playlistDTO.setTracks( trackSetToTrackDTOSet( playlist.getTracks() ) );
         playlistDTO.setLikedBy( userSetToUserDTOSet1( playlist.getLikedBy() ) );
         playlistDTO.setPlayCount( playlist.getPlayCount() );
-        playlistDTO.setCoverImageUrl( playlist.getCoverImageUrl() );
-        playlistDTO.setCreatedAt( playlist.getCreatedAt() );
-        playlistDTO.setDescription( playlist.getDescription() );
         playlistDTO.setId( playlist.getId() );
         playlistDTO.setName( playlist.getName() );
+        playlistDTO.setDescription( playlist.getDescription() );
+        playlistDTO.setCoverImageUrl( playlist.getCoverImageUrl() );
+        playlistDTO.setCreatedAt( playlist.getCreatedAt() );
         playlistDTO.setUpdatedAt( playlist.getUpdatedAt() );
 
         return playlistDTO;
@@ -69,9 +65,9 @@ public class PlaylistMapperImpl implements PlaylistMapper {
             return;
         }
 
-        playlist.setCoverImageUrl( dto.getCoverImageUrl() );
-        playlist.setDescription( dto.getDescription() );
         playlist.setName( dto.getName() );
+        playlist.setDescription( dto.getDescription() );
+        playlist.setCoverImageUrl( dto.getCoverImageUrl() );
     }
 
     protected UserDTO userToUserDTO(User user) {
@@ -81,43 +77,15 @@ public class PlaylistMapperImpl implements PlaylistMapper {
 
         UserDTO userDTO = new UserDTO();
 
-        userDTO.setBio( user.getBio() );
-        userDTO.setCreatedAt( user.getCreatedAt() );
+        userDTO.setId( user.getId() );
+        userDTO.setUsername( user.getUsername() );
         userDTO.setEmail( user.getEmail() );
         userDTO.setFullName( user.getFullName() );
-        userDTO.setId( user.getId() );
+        userDTO.setBio( user.getBio() );
+        userDTO.setCreatedAt( user.getCreatedAt() );
         userDTO.setUpdatedAt( user.getUpdatedAt() );
-        userDTO.setUsername( user.getUsername() );
 
         return userDTO;
-    }
-
-    protected CommentDTO commentToCommentDTO(Comment comment) {
-        if ( comment == null ) {
-            return null;
-        }
-
-        CommentDTO commentDTO = new CommentDTO();
-
-        commentDTO.setContent( comment.getContent() );
-        commentDTO.setCreatedAt( comment.getCreatedAt() );
-        commentDTO.setId( comment.getId() );
-        commentDTO.setUpdatedAt( comment.getUpdatedAt() );
-
-        return commentDTO;
-    }
-
-    protected List<CommentDTO> commentSetToCommentDTOList(Set<Comment> set) {
-        if ( set == null ) {
-            return null;
-        }
-
-        List<CommentDTO> list = new ArrayList<CommentDTO>( set.size() );
-        for ( Comment comment : set ) {
-            list.add( commentToCommentDTO( comment ) );
-        }
-
-        return list;
     }
 
     protected Set<UserDTO> userSetToUserDTOSet(Set<User> set) {
@@ -140,24 +108,23 @@ public class PlaylistMapperImpl implements PlaylistMapper {
 
         TrackDTO trackDTO = new TrackDTO();
 
-        trackDTO.setAlbum( track.getAlbum() );
-        trackDTO.setArtist( track.getArtist() );
-        trackDTO.setAudioUrl( track.getAudioUrl() );
-        trackDTO.setAverageRating( track.getAverageRating() );
-        trackDTO.setComments( commentSetToCommentDTOList( track.getComments() ) );
-        trackDTO.setCoverImageUrl( track.getCoverImageUrl() );
-        trackDTO.setCreatedAt( track.getCreatedAt() );
-        trackDTO.setDuration( track.getDuration() );
-        trackDTO.setGenre( track.getGenre() );
         trackDTO.setId( track.getId() );
         trackDTO.setJamendoId( track.getJamendoId() );
+        trackDTO.setTitle( track.getTitle() );
+        trackDTO.setArtist( track.getArtist() );
+        trackDTO.setAlbum( track.getAlbum() );
+        trackDTO.setGenre( track.getGenre() );
+        trackDTO.setCoverImageUrl( track.getCoverImageUrl() );
+        trackDTO.setAudioUrl( track.getAudioUrl() );
+        trackDTO.setDuration( track.getDuration() );
+        trackDTO.setUser( userToUserDTO( track.getUser() ) );
         trackDTO.setLikedBy( userSetToUserDTOSet( track.getLikedBy() ) );
         trackDTO.setPlayCount( track.getPlayCount() );
-        trackDTO.setRating( track.getRating() );
+        trackDTO.setAverageRating( track.getAverageRating() );
         trackDTO.setRatingCount( track.getRatingCount() );
-        trackDTO.setTitle( track.getTitle() );
+        trackDTO.setCreatedAt( track.getCreatedAt() );
         trackDTO.setUpdatedAt( track.getUpdatedAt() );
-        trackDTO.setUser( userToUserDTO( track.getUser() ) );
+        trackDTO.setRating( track.getRating() );
 
         return trackDTO;
     }

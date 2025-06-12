@@ -12,10 +12,13 @@ import com.musicsocial.repository.UserRepository;
 import com.musicsocial.service.TrackService;
 import com.musicsocial.service.FileStorageService;
 import com.musicsocial.service.ListeningHistoryService;
+import com.musicsocial.service.NotificationService;
+import com.musicsocial.dto.notification.NotificationCreateDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,6 +38,7 @@ public class TrackServiceImpl implements TrackService {
     private final TrackMapper trackMapper;
     private final ListeningHistoryService listeningHistoryService;
     private final FileStorageService fileStorageService;
+    private final NotificationService notificationService;
 
     @Override
     public TrackDTO createTrack(TrackCreateDTO trackCreateDTO) {
@@ -174,6 +178,24 @@ public class TrackServiceImpl implements TrackService {
 
         user.getLikedTracks().add(track);
         userRepository.save(user);
+        
+        // Send notification to track owner (if not liking own track)
+        if (!userId.equals(track.getUser().getId())) {
+            try {
+                NotificationCreateDTO notificationDTO = NotificationCreateDTO.builder()
+                        .senderId(userId)
+                        .receiverId(track.getUser().getId())
+                        .message(user.getUsername() + " liked your track \"" + track.getTitle() + "\"")
+                        .type("LIKE")
+                        .itemType("track")
+                        .itemId(trackId)
+                        .build();
+                notificationService.createNotification(notificationDTO);
+            } catch (Exception e) {
+                log.warn("Failed to send track like notification from {} to {} for track {}: {}", 
+                    userId, track.getUser().getId(), trackId, e.getMessage());
+            }
+        }
     }
 
     @Override
@@ -290,5 +312,16 @@ public class TrackServiceImpl implements TrackService {
         // Fetch the tracks with pagination
         return trackRepository.findByIdIn(trackIds, pageable)
                 .map(track -> trackMapper.toDTO(track, userId));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TrackDTO> getAllTracksForDiscover(Long userId) {
+        // Lấy tất cả tracks từ database, sắp xếp theo title từ A-Z
+        List<Track> allTracks = trackRepository.findAll(Sort.by(Sort.Direction.ASC, "title"));
+        
+        return allTracks.stream()
+                .map(track -> trackMapper.toDTO(track, userId))
+                .collect(Collectors.toList());
     }
 } 

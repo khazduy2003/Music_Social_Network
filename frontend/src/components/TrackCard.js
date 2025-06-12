@@ -273,9 +273,7 @@ const TrackCard = ({ track, showArtist = true }) => {
                 </ListItemText>
               </MenuItem>
               <MenuItem onClick={handleAddToQueue}>
-                <ListItemIcon>
-                  <PlaylistAdd />
-                </ListItemIcon>
+                
                 <ListItemText>Add to Playlist</ListItemText>
               </MenuItem>
               <MenuItem onClick={(e) => handleShare(e)}>

@@ -88,64 +88,27 @@ public class RecommendationController {
         }
     }
 
-    /*
     @GetMapping("/debug/{userId}")
     @Operation(summary = "Debug recommendation system", 
-               description = "Debug endpoint to check database content and matching logic")
+               description = "Debug endpoint to check system status")
     public ResponseEntity<?> debugRecommendations(@PathVariable Long userId) {
         log.info("Debug recommendations for user: {}", userId);
         
         try {
             Map<String, Object> debugInfo = new HashMap<>();
             
-            // 1. Get user preferences with eager fetching
-            var userPreferenceOpt = userPreferenceRepository.findByUserIdWithCollections(userId);
-            if (userPreferenceOpt.isPresent()) {
-                var prefs = userPreferenceOpt.get();
-                debugInfo.put("preferredArtists", prefs.getPreferredArtists());
-                debugInfo.put("preferredGenres", prefs.getPreferredGenres());
-                
-                // 2. For each preferred artist, check what tracks exist
-                Map<String, List<String>> artistTracks = new HashMap<>();
-                for (String artist : prefs.getPreferredArtists()) {
-                    List<String> tracks = trackRepository.findByArtistIgnoreCase(artist)
-                            .stream()
-                            .map(track -> track.getId() + ": " + track.getTitle())
-                            .collect(Collectors.toList());
-                    artistTracks.put(artist, tracks);
-                }
-                debugInfo.put("artistTracks", artistTracks);
-                
-                // 3. Check what tracks user has listened to
-                Set<Long> listenedIds = listeningHistoryRepository.findDistinctTrackIdsByUserId(userId);
-                debugInfo.put("listenedTrackIds", listenedIds);
-                debugInfo.put("listenedTrackCount", listenedIds.size());
-                
-                // 4. Get sample of all tracks in database to verify artist names
-                List<String> allTracks = trackRepository.findAll().stream()
-                        .limit(20)
-                        .map(track -> track.getId() + ": '" + track.getArtist() + "' - " + track.getTitle())
-                        .collect(Collectors.toList());
-                debugInfo.put("sampleTracks", allTracks);
-                
-                // 5. Count total tracks per artist in database
-                Map<String, Long> artistTrackCounts = new HashMap<>();
-                for (String artist : prefs.getPreferredArtists()) {
-                    long count = trackRepository.findByArtistIgnoreCase(artist).size();
-                    artistTrackCounts.put(artist, count);
-                }
-                debugInfo.put("artistTrackCounts", artistTrackCounts);
-                
-            } else {
-                debugInfo.put("error", "No user preferences found for user: " + userId);
-            }
+            // Check if user exists
+            debugInfo.put("userId", userId);
+            debugInfo.put("timestamp", new Date());
+            
+            // Simple test
+            debugInfo.put("status", "API is working");
             
             return ResponseEntity.ok(debugInfo);
             
         } catch (Exception e) {
-            log.error("Error debugging recommendations for user: {}", userId, e);
+            log.error("Error in debug endpoint for user: {}", userId, e);
             return ResponseEntity.internalServerError().body("Debug error: " + e.getMessage());
         }
     }
-    */
 } 

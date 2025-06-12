@@ -55,13 +55,48 @@ const AddTrackToPlaylistDialog = ({ open, onClose, playlist, onTracksAdded }) =>
   const fetchAllTracks = async () => {
     try {
       setLoading(true);
-      const allTracks = await trackService.getAllTracks();
+      
+      // Gọi đồng thời 3 API để lấy tất cả tracks
+      const [topTracksResponse, mostPlayedResponse, allTracksResponse] = await Promise.all([
+        trackService.getTopTracks(),
+        trackService.getMostPlayedTracks(),
+        trackService.getAllTracksForDiscover()
+      ]);
+
+      // Gộp 3 danh sách
+      const allTracksList = [
+        ...(topTracksResponse || []),
+        ...(mostPlayedResponse || []),
+        ...(allTracksResponse || [])
+      ];
+
+      // Loại bỏ duplicate dựa trên ID
+      const uniqueTracks = allTracksList.filter((track, index, self) => 
+        index === self.findIndex(t => t.id === track.id)
+      );
+
+      // Sắp xếp theo title từ A-Z
+      const sortedTracks = uniqueTracks.sort((a, b) => 
+        a.title.toLowerCase().localeCompare(b.title.toLowerCase())
+      );
+
       // Filter out tracks that are already in the playlist
       const playlistTrackIds = playlist.tracks?.map(track => track.id) || [];
-      const availableTracks = allTracks.filter(track => !playlistTrackIds.includes(track.id));
+      const availableTracks = sortedTracks.filter(track => !playlistTrackIds.includes(track.id));
+      
       setTracks(availableTracks);
     } catch (error) {
       console.error('Error fetching tracks:', error);
+      // Fallback to just getAllTracksForDiscover if there's an error
+      try {
+        const fallbackResponse = await trackService.getAllTracksForDiscover();
+        const playlistTrackIds = playlist.tracks?.map(track => track.id) || [];
+        const availableTracks = (fallbackResponse || []).filter(track => !playlistTrackIds.includes(track.id));
+        setTracks(availableTracks);
+      } catch (fallbackError) {
+        console.error('Fallback also failed:', fallbackError);
+        setTracks([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -270,15 +305,8 @@ const AddTrackToPlaylistDialog = ({ open, onClose, playlist, onTracksAdded }) =>
                               textOverflow: 'ellipsis',
                               overflow: 'hidden',
                               whiteSpace: 'nowrap',
-                              cursor: 'pointer',
-                              '&:hover': {
-                                textDecoration: 'underline'
-                              }
                             }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/track/${track.id}`);
-                            }}
+                            onClick={() => handleTrackToggle(track)}
                           >
                             {track.title}
                           </Typography>

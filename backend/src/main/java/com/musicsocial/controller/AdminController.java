@@ -2,11 +2,9 @@ package com.musicsocial.controller;
 
 import com.musicsocial.domain.Track;
 import com.musicsocial.repository.TrackRepository;
-import com.musicsocial.service.JamendoService;
 import com.musicsocial.service.UserPreferenceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,8 +16,6 @@ import java.util.Map;
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
 public class AdminController {
-
-    private final JamendoService jamendoService;
     private final TrackRepository trackRepository;
     private final UserPreferenceService userPreferenceService;
 

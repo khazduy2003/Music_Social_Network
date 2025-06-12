@@ -528,13 +528,14 @@ const Home = () => {
               >
                 {track.isLiked ? <Favorite fontSize="small" /> : <FavoriteBorder fontSize="small" />}
               </IconButton>
-              <IconButton 
+              {/* <IconButton 
                 size="small" 
                 onClick={() => handleAddToPlaylist(track)}
                 sx={{ color: 'white', padding: 0.5 }}
               >
                 <Add fontSize="small" />
-              </IconButton>
+              </IconButton> */}
+              
               <IconButton 
                 size="small" 
                 onClick={() => handleAddToQueue(track)}

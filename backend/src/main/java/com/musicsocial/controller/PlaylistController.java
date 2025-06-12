@@ -4,18 +4,29 @@ import com.musicsocial.dto.playlist.PlaylistDTO;
 import com.musicsocial.dto.playlist.PlaylistCreateDTO;
 import com.musicsocial.dto.playlist.PlaylistUpdateDTO;
 import com.musicsocial.service.PlaylistService;
+import com.musicsocial.service.NotificationService;
+import com.musicsocial.dto.notification.NotificationCreateDTO;
+import com.musicsocial.domain.User;
+import com.musicsocial.domain.Playlist;
+import com.musicsocial.repository.UserRepository;
+import com.musicsocial.repository.PlaylistRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/playlists")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
+@Slf4j
 public class PlaylistController {
     private final PlaylistService playlistService;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
+    private final PlaylistRepository playlistRepository;
 
     @GetMapping("/{id}")
     public ResponseEntity<PlaylistDTO> getPlaylistById(@PathVariable Long id) {
@@ -69,6 +80,27 @@ public class PlaylistController {
             @PathVariable Long userId,
             @PathVariable Long playlistId) {
         playlistService.likePlaylist(userId, playlistId);
+        
+        // Send notification to playlist owner
+        try {
+            User user = userRepository.findById(userId).orElse(null);
+            Playlist playlist = playlistRepository.findById(playlistId).orElse(null);
+            
+            if (user != null && playlist != null && !userId.equals(playlist.getUser().getId())) {
+                NotificationCreateDTO notificationDTO = NotificationCreateDTO.builder()
+                        .senderId(userId)
+                        .receiverId(playlist.getUser().getId())
+                        .message(user.getUsername() + " liked your playlist \"" + playlist.getName() + "\"")
+                        .type("LIKE")
+                        .itemType("playlist")
+                        .itemId(playlistId)
+                        .build();
+                notificationService.createNotification(notificationDTO);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to send playlist like notification: {}", e.getMessage());
+        }
+        
         return ResponseEntity.ok().build();
     }
 

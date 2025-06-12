@@ -35,9 +35,7 @@ public class Track {
     @ManyToMany(mappedBy = "tracks")
     private Set<Playlist> playlists = new HashSet<>();
 
-    @OneToMany(mappedBy = "track", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Comment> comments = new HashSet<>();
-
+   
     @ManyToMany(mappedBy = "likedTracks")
     private Set<User> likedBy = new HashSet<>();
 

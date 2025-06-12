@@ -131,8 +131,41 @@ const Discover = () => {
         const userId = JSON.parse(localStorage.getItem('user'))?.id;
         
         switch(currentTab) {
-          case 0: // All Tracks
-            response = await trackService.getAllTracks();
+          case 0: // All Tracks - Gộp top rated, most played và tất cả tracks
+            try {
+              // Gọi đồng thời 3 API
+              const [topTracksResponse, mostPlayedResponse, allTracksResponse] = await Promise.all([
+                trackService.getTopTracks(),
+                trackService.getMostPlayedTracks(),
+                trackService.getAllTracksForDiscover()
+              ]);
+
+              // Gộp 3 danh sách
+              const allTracksList = [
+                ...(topTracksResponse || []),
+                ...(mostPlayedResponse || []),
+                ...(allTracksResponse || [])
+              ];
+
+              // Loại bỏ duplicate dựa trên ID
+              const uniqueTracks = allTracksList.filter((track, index, self) => 
+                index === self.findIndex(t => t.id === track.id)
+              );
+
+              // Sắp xếp theo title từ A-Z
+              const sortedTracks = uniqueTracks.sort((a, b) => 
+                a.title.toLowerCase().localeCompare(b.title.toLowerCase())
+              );
+
+              setTracks(sortedTracks);
+              setTotalPages(Math.ceil(sortedTracks.length / ITEMS_PER_PAGE));
+              setLoading(false);
+              return; // Return early để không chạy code bên dưới
+            } catch (error) {
+              console.error('Error fetching combined tracks:', error);
+              // Fallback to just all tracks if there's an error
+              response = await trackService.getAllTracksForDiscover();
+            }
             break;
           case 1: // Top Rated
             response = await trackService.getTopTracks();
@@ -144,16 +177,18 @@ const Discover = () => {
             response = await trackService.getAllTracks();
         }
         
-        // Set tracks and calculate total pages
-        if (response && Array.isArray(response)) {
-          setTracks(response);
-          setTotalPages(Math.ceil(response.length / ITEMS_PER_PAGE));
-        } else if (response && response.content) {
-          setTracks(response.content);
-          setTotalPages(response.totalPages || Math.ceil(response.content.length / ITEMS_PER_PAGE));
-        } else {
-          setTracks([]);
-          setTotalPages(1);
+        // Set tracks and calculate total pages for non-All Tracks tabs
+        if (currentTab !== 0) {
+          if (response && Array.isArray(response)) {
+            setTracks(response);
+            setTotalPages(Math.ceil(response.length / ITEMS_PER_PAGE));
+          } else if (response && response.content) {
+            setTracks(response.content);
+            setTotalPages(response.totalPages || Math.ceil(response.content.length / ITEMS_PER_PAGE));
+          } else {
+            setTracks([]);
+            setTotalPages(1);
+          }
         }
         
         setLoading(false);
@@ -243,8 +278,41 @@ const Discover = () => {
               const userId = JSON.parse(localStorage.getItem('user'))?.id;
               
               switch(currentTab) {
-                case 0: // All Tracks
-                  response = await trackService.getAllTracks();
+                case 0: // All Tracks - Gộp top rated, most played và tất cả tracks
+                  try {
+                    // Gọi đồng thời 3 API
+                    const [topTracksResponse, mostPlayedResponse, allTracksResponse] = await Promise.all([
+                      trackService.getTopTracks(),
+                      trackService.getMostPlayedTracks(),
+                      trackService.getAllTracksForDiscover()
+                    ]);
+
+                    // Gộp 3 danh sách
+                    const allTracksList = [
+                      ...(topTracksResponse || []),
+                      ...(mostPlayedResponse || []),
+                      ...(allTracksResponse || [])
+                    ];
+
+                    // Loại bỏ duplicate dựa trên ID
+                    const uniqueTracks = allTracksList.filter((track, index, self) => 
+                      index === self.findIndex(t => t.id === track.id)
+                    );
+
+                    // Sắp xếp theo title từ A-Z
+                    const sortedTracks = uniqueTracks.sort((a, b) => 
+                      a.title.toLowerCase().localeCompare(b.title.toLowerCase())
+                    );
+
+                    setTracks(sortedTracks);
+                    setTotalPages(Math.ceil(sortedTracks.length / ITEMS_PER_PAGE));
+                    setLoading(false);
+                    return; // Return early để không chạy code bên dưới
+                  } catch (error) {
+                    console.error('Error fetching combined tracks:', error);
+                    // Fallback to just all tracks if there's an error
+                    response = await trackService.getAllTracksForDiscover();
+                  }
                   break;
                 case 1: // Top Rated
                   response = await trackService.getTopTracks();

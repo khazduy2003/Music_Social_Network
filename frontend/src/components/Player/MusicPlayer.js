@@ -17,7 +17,12 @@ import {
   ListItemAvatar,
   Avatar,
   Divider,
-  Button
+  Button,
+  Fade,
+  Grow,
+  Zoom,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import {
   PlayArrow as PlayIcon,
@@ -41,9 +46,12 @@ import {
   Close as CloseIcon,
   RemoveCircleOutline as RemoveCircleOutlineIcon,
   ExpandLess as CollapseIcon,
-  ExpandMore as ExpandIcon
+  ExpandMore as ExpandIcon,
+  Stop as StopIcon,
+  CloseFullscreen as ClosePlayerIcon
 } from '@mui/icons-material';
 import { usePlayerContext } from '../../contexts/PlayerContext';
+import { useSidebar } from '../../contexts/SidebarContext';
 import { trackService } from '../../services/trackService';
 import { useListeningHistory } from '../../hooks/useListeningHistory';
 import toast from 'react-hot-toast';
@@ -51,6 +59,10 @@ import { useAuth } from '../../contexts/AuthContext';
 import ShareModal from '../ShareModal';
 
 const MusicPlayer = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { sidebarWidth, isCollapsed } = useSidebar();
+  
   const {
     currentTrack,
     isPlaying,
@@ -65,6 +77,8 @@ const MusicPlayer = () => {
     isLoading,
     playTrack,
     pauseTrack,
+    stopTrack,
+    closePlayer,
     seekTo,
     playNextTrack,
     playPreviousTrack,
@@ -151,6 +165,28 @@ const MusicPlayer = () => {
     setShareModalOpen(true);
   };
 
+  // Handle stop button click
+  const handleStop = async () => {
+    try {
+      await stopTrack();
+      toast.success('Music stopped and listening history saved');
+    } catch (error) {
+      console.error('Error stopping track:', error);
+      toast.error('Failed to stop track');
+    }
+  };
+
+  // Handle close player button click
+  const handleClosePlayer = async () => {
+    try {
+      await closePlayer();
+      toast.success('Music player closed');
+    } catch (error) {
+      console.error('Error closing player:', error);
+      toast.error('Failed to close player');
+    }
+  };
+
   // Handle remove from queue
   const handleRemoveFromQueue = (trackId) => {
     removeFromQueue(trackId);
@@ -214,6 +250,12 @@ const MusicPlayer = () => {
     return null;
   }
 
+  // Calculate responsive positioning and sizing
+  const playerLeftOffset = isMobile ? 0 : sidebarWidth;
+  const playerWidth = isMobile ? '100%' : `calc(100% - ${sidebarWidth}px)`;
+  const trackInfoMaxWidth = isCollapsed ? '35%' : '30%';
+  const progressBarMaxWidth = isCollapsed ? '35%' : '40%';
+
   return (
     <>
       {/* Debug Queue Panel - Temporary 
@@ -250,275 +292,571 @@ const MusicPlayer = () => {
       */}
 
       {/* Main Player - Fixed at Bottom */}
-      <Card
-        sx={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          background: 'rgba(18, 18, 28, 0.95)',
-          backdropFilter: 'blur(10px)',
-          boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.3)',
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-          zIndex: 1000,
-          transition: 'all 0.3s ease',
-          height: isMinimized ? '70px' : 'auto',
-          overflow: 'hidden'
-        }}
-      >
-        {/* Minimized Player */}
-        <Box
+      <Fade in={true} timeout={800}>
+        <Card
           sx={{
+            position: 'fixed',
+            bottom: 0,
+            left: playerLeftOffset,
+            width: playerWidth,
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            p: 1,
-            height: '70px'
+            flexDirection: 'column',
+            background: 'linear-gradient(135deg, rgba(18, 18, 28, 0.98) 0%, rgba(25, 25, 40, 0.98) 50%, rgba(18, 18, 28, 0.98) 100%)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            boxShadow: '0 -8px 32px rgba(0, 0, 0, 0.4), 0 -2px 16px rgba(29, 185, 84, 0.1)',
+            borderTop: '1px solid rgba(255, 255, 255, 0.15)',
+            zIndex: 1000,
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+            height: isMinimized ? '80px' : 'auto',
+            overflow: 'hidden',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '2px',
+              background: 'linear-gradient(90deg, transparent, #1db954, transparent)',
+              opacity: 0.6
+            },
+            '&::after': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'radial-gradient(circle at 50% 0%, rgba(29, 185, 84, 0.05) 0%, transparent 70%)',
+              pointerEvents: 'none'
+            }
           }}
         >
-          {/* Track Info */}
-          <Box sx={{ display: 'flex', alignItems: 'center', maxWidth: '30%' }}>
-            <CardMedia
-              component="img"
-              sx={{ width: 50, height: 50, borderRadius: 1, mr: 2 }}
-              image={currentTrack.coverImageUrl || currentTrack.coverUrl || '/images/default-track.png'}
-              alt={currentTrack.title}
-              onError={(e) => {
-                e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCA1MCA1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjUwIiBoZWlnaHQ9IjUwIiBmaWxsPSIjMzMzIi8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNjY2IiBmb250LXNpemU9IjEycHgiPk5PIElNRzwvdGV4dD4KPC9zdmc+';
-              }}
-            />
-            <Box sx={{ minWidth: 0 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{
-                  fontWeight: 'bold',
-                  color: 'white',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                {currentTrack.title}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  color: '#b3b3b3',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  display: 'block'
-                }}
-              >
-                {currentTrack.artist}
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* Controls */}
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <IconButton onClick={playPreviousTrack} sx={{ color: 'white' }}>
-              <PrevIcon />
-            </IconButton>
-            
-            <IconButton 
-              onClick={handlePlayPause} 
-              sx={{ 
-                mx: 1, 
-                color: 'white', 
-                bgcolor: '#1db954', 
-                '&:hover': { bgcolor: '#1ed760' },
-                width: 40,
-                height: 40
-              }}
-            >
-              {isPlaying ? <PauseIcon /> : <PlayIcon />}
-            </IconButton>
-            
-            <IconButton onClick={playNextTrack} sx={{ color: 'white' }}>
-              <NextIcon />
-            </IconButton>
-          </Box>
-
-          {/* Progress Bar & Volume (Visible on larger screens) */}
-          <Box 
-            sx={{ 
-              display: { xs: 'none', md: 'flex' }, 
-              alignItems: 'center', 
-              flex: 1, 
-              maxWidth: '40%', 
-              mx: 2 
-            }}
-          >
-            <Typography variant="caption" sx={{ color: '#b3b3b3', minWidth: '40px', textAlign: 'right' }}>
-              {formatTime(progress)}
-            </Typography>
-            <Slider
-              value={progress}
-              max={duration || 100}
-              onChange={handleProgressChange}
-              sx={{
-                mx: 2,
-                color: '#1db954',
-                height: 4,
-                '& .MuiSlider-thumb': {
-                  width: 12,
-                  height: 12,
-                  transition: '0.3s cubic-bezier(.47,1.64,.41,.8)',
-                  '&:hover, &.Mui-focusVisible': {
-                    boxShadow: '0px 0px 0px 8px rgba(29, 185, 84, 0.16)'
-                  }
-                },
-                '& .MuiSlider-rail': {
-                  opacity: 0.28
-                }
-              }}
-            />
-            <Typography variant="caption" sx={{ color: '#b3b3b3', minWidth: '40px' }}>
-              {formatTime(duration)}
-            </Typography>
-          </Box>
-
-          {/* Right Controls */}
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {/* Volume Control - Visible on larger screens */}
-            <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', width: 150, mr: 2 }}>
-              <IconButton onClick={toggleMute} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                {getVolumeIcon()}
-              </IconButton>
-              <Slider
-                value={muted ? 0 : volume}
-                onChange={handleVolumeChange}
-                sx={{
-                  mx: 1,
-                  color: '#1db954',
-                  height: 4,
-                  '& .MuiSlider-thumb': {
-                    width: 12,
-                    height: 12
-                  }
-                }}
-              />
-            </Box>
-
-            {/* Queue Button */}
-            <Tooltip title="Queue">
-              <IconButton onClick={handleTogglePlaylist} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                <Badge 
-                  badgeContent={queue.length} 
-                  color="primary"
-                  sx={{ '& .MuiBadge-badge': { bgcolor: '#1db954' } }}
-                >
-                  <PlaylistIcon />
-                </Badge>
+          {/* Close Player Button */}
+          <Box sx={{ position: 'absolute', bottom: 8, right: 12, zIndex: 10, 
+                      opacity: isMinimized ? 0 : 1,
+                      pointerEvents: isMinimized ? 'none' : 'auto',
+                      transition: 'opacity 1s ease-in-out'}}>
+            <Tooltip title="Close player" arrow>
+              <IconButton onClick={handleClosePlayer} sx={{ color: 'rgba(255,255,255,0.7)', background: 'rgba(30,30,40,0.7)', '&:hover': { color: '#ff4444', background: 'rgba(255,68,68,0.1)' }, boxShadow: 2 }}>
+                <ClosePlayerIcon />
               </IconButton>
             </Tooltip>
-
-            {/* Expand/Collapse Button */}
-            <IconButton onClick={handleToggleMinimized} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-              {isMinimized ? <MaximizeIcon /> : <MinimizeIcon />}
-            </IconButton>
           </Box>
-        </Box>
 
-        {/* Expanded Player Content */}
-        <Collapse in={!isMinimized}>
-          <Box sx={{ p: 3, pt: 0 }}>
-            {/* Mobile Progress Bar (only visible on small screens) */}
-            <Box sx={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center', my: 2 }}>
-              <Typography variant="caption" sx={{ color: '#b3b3b3', minWidth: '40px', textAlign: 'right' }}>
-                {formatTime(progress)}
-              </Typography>
-              <Slider
-                value={progress}
-                max={duration || 100}
-                onChange={handleProgressChange}
-                sx={{
-                  mx: 2,
-                  color: '#1db954',
-                  height: 4,
-                  '& .MuiSlider-thumb': {
-                    width: 12,
-                    height: 12
-                  }
-                }}
-              />
-              <Typography variant="caption" sx={{ color: '#b3b3b3', minWidth: '40px' }}>
-                {formatTime(duration)}
-              </Typography>
-            </Box>
-
-            {/* Additional Controls */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2, mb: 3 }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                  <Tooltip title={isShuffled ? "Shuffle is on" : "Shuffle is off"}>
-                    <IconButton 
-                      onClick={handleShuffleClick} 
-                      sx={{ 
-                        color: isShuffled ? '#1db954' : 'rgba(255, 255, 255, 0.7)',
-                        '&:hover': { color: isShuffled ? '#1db954' : 'white' }
-                      }}
-                    >
-                      <ShuffleIcon />
-                    </IconButton>
-                  </Tooltip>
-                  
-                  <IconButton onClick={playPreviousTrack} sx={{ color: 'white' }}>
-                    <PrevIcon />
-                  </IconButton>
-                  
-                  <IconButton 
-                    onClick={handlePlayPause} 
+          {/* Minimized Player */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              p: 2,
+              height: '80px',
+              position: 'relative',
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                bottom: 0,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '60px',
+                height: '3px',
+                background: 'linear-gradient(90deg, transparent, rgba(29, 185, 84, 0.8), transparent)',
+                borderRadius: '2px',
+                opacity: isMinimized ? 0 : 1,
+                transition: 'opacity 0.3s ease'
+              }
+            }}
+          >
+            {/* Track Info */}
+            <Grow in={true} timeout={600}>
+              <Box sx={{ display: 'flex', alignItems: 'center', maxWidth: trackInfoMaxWidth }}>
+                <Box
+                  sx={{
+                    position: 'relative',
+                    mr: 2,
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      top: -2,
+                      left: -2,
+                      right: -2,
+                      bottom: -2,
+                      background: 'linear-gradient(45deg, #1db954, #1ed760, #1db954)',
+                      borderRadius: '8px',
+                      opacity: isPlaying ? 0.6 : 0,
+                      transition: 'opacity 0.3s ease',
+                      animation: isPlaying ? 'pulse 2s infinite' : 'none'
+                    }
+                  }}
+                >
+                  <CardMedia
+                    component="img"
                     sx={{ 
-                      mx: 1, 
-                      color: 'white', 
-                      bgcolor: '#1db954', 
-                      '&:hover': { bgcolor: '#1ed760' },
-                      width: 56,
-                      height: 56
+                      width: 56, 
+                      height: 56, 
+                      borderRadius: '6px',
+                      position: 'relative',
+                      zIndex: 1,
+                      transition: 'transform 0.3s ease',
+                      '&:hover': {
+                        transform: 'scale(1.05)'
+                      }
+                    }}
+                    image={currentTrack.coverImageUrl || currentTrack.coverUrl || '/images/default-track.png'}
+                    alt={currentTrack.title}
+                    onError={(e) => {
+                      e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNTYiIHZpZXdCb3g9IjAgMCA1NiA1NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjU2IiBoZWlnaHQ9IjU2IiBmaWxsPSIjMzMzIiByeD0iNiIvPgo8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzY2NiIgZm9udC1zaXplPSIxMnB4Ij5OTyBJTUc8L3RleHQ+Cjwvc3ZnPg==';
+                    }}
+                  />
+                </Box>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography
+                    variant="subtitle1"
+                    sx={{
+                      fontWeight: 'bold',
+                      color: 'white',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      background: 'linear-gradient(45deg, #ffffff, #f0f0f0)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent'
                     }}
                   >
-                    {isPlaying ? <PauseIcon sx={{ fontSize: 30 }} /> : <PlayIcon sx={{ fontSize: 30 }} />}
+                    {currentTrack.title}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: '#b3b3b3',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      display: 'block',
+                      transition: 'color 0.3s ease',
+                      '&:hover': {
+                        color: '#ffffff'
+                      }
+                    }}
+                  >
+                    {currentTrack.artist}
+                  </Typography>
+                </Box>
+              </Box>
+            </Grow>
+
+            {/* Controls */}
+            <Zoom in={true} timeout={800}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <IconButton 
+                  onClick={playPreviousTrack} 
+                  sx={{ 
+                    color: 'white',
+                    transition: 'all 0.3s ease',
+                    '&:hover': { 
+                      color: '#1db954',
+                      transform: 'scale(1.1)',
+                      backgroundColor: 'rgba(29, 185, 84, 0.1)'
+                    }
+                  }}
+                >
+                  <PrevIcon />
+                </IconButton>
+                
+                <IconButton 
+                  onClick={handlePlayPause} 
+                  sx={{ 
+                    mx: 1, 
+                    color: 'white', 
+                    background: 'linear-gradient(45deg, #1db954, #1ed760)',
+                    width: 48,
+                    height: 48,
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    boxShadow: '0 4px 16px rgba(29, 185, 84, 0.4)',
+                    '&:hover': { 
+                      background: 'linear-gradient(45deg, #1ed760, #22e065)',
+                      transform: 'scale(1.05)',
+                      boxShadow: '0 6px 20px rgba(29, 185, 84, 0.6)'
+                    },
+                    '&:active': {
+                      transform: 'scale(0.95)'
+                    }
+                  }}
+                >
+                  {isPlaying ? <PauseIcon /> : <PlayIcon />}
+                </IconButton>
+
+                {/* Stop Button */}
+                <Tooltip title="Dừng và lưu lịch sử nghe" arrow>
+                  <IconButton 
+                    onClick={handleStop} 
+                    sx={{ 
+                      ml: 0.5,
+                      color: 'rgba(255, 255, 255, 0.8)',
+                      transition: 'all 0.3s ease',
+                      '&:hover': { 
+                        color: '#ff6b6b',
+                        transform: 'scale(1.1)',
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)'
+                      }
+                    }}
+                  >
+                    <StopIcon />
                   </IconButton>
-                  
-                  <IconButton onClick={playNextTrack} sx={{ color: 'white' }}>
-                    <NextIcon />
+                </Tooltip>
+                
+                <IconButton 
+                  onClick={playNextTrack} 
+                  sx={{ 
+                    color: 'white',
+                    transition: 'all 0.3s ease',
+                    '&:hover': { 
+                      color: '#1db954',
+                      transform: 'scale(1.1)',
+                      backgroundColor: 'rgba(29, 185, 84, 0.1)'
+                    }
+                  }}
+                >
+                  <NextIcon />
+                </IconButton>
+              </Box>
+            </Zoom>
+
+            {/* Progress Bar & Volume (Visible on larger screens) */}
+            <Fade in={true} timeout={1000}>
+              <Box 
+                sx={{ 
+                  display: { xs: 'none', md: 'flex' }, 
+                  alignItems: 'center', 
+                  flex: 1, 
+                  maxWidth: progressBarMaxWidth, 
+                  mx: 3 
+                }}
+              >
+                <Typography variant="caption" sx={{ color: '#b3b3b3', minWidth: '40px', textAlign: 'right' }}>
+                  {formatTime(progress)}
+                </Typography>
+                <Slider
+                  value={progress}
+                  max={duration || 100}
+                  onChange={handleProgressChange}
+                  sx={{
+                    mx: 2,
+                    color: '#1db954',
+                    height: 6,
+                    '& .MuiSlider-track': {
+                      background: 'linear-gradient(90deg, #1db954, #1ed760)',
+                      border: 'none',
+                      boxShadow: '0 2px 8px rgba(29, 185, 84, 0.3)'
+                    },
+                    '& .MuiSlider-thumb': {
+                      width: 16,
+                      height: 16,
+                      background: 'linear-gradient(45deg, #1db954, #1ed760)',
+                      border: '2px solid white',
+                      boxShadow: '0 2px 8px rgba(29, 185, 84, 0.4)',
+                      transition: '0.3s cubic-bezier(.47,1.64,.41,.8)',
+                      '&:hover, &.Mui-focusVisible': {
+                        boxShadow: '0px 0px 0px 8px rgba(29, 185, 84, 0.16)',
+                        transform: 'scale(1.2)'
+                      }
+                    },
+                    '& .MuiSlider-rail': {
+                      opacity: 0.3,
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)'
+                    }
+                  }}
+                />
+                <Typography variant="caption" sx={{ color: '#b3b3b3', minWidth: '40px' }}>
+                  {formatTime(duration)}
+                </Typography>
+              </Box>
+            </Fade>
+
+            {/* Right Controls */}
+            <Grow in={true} timeout={1200}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                {/* Volume Control - Visible on larger screens */}
+                <Box sx={{ 
+                  display: { xs: 'none', md: 'flex' }, 
+                  alignItems: 'center', 
+                  width: isCollapsed ? 120 : 150, 
+                  mr: 2 
+                }}>
+                  <IconButton 
+                    onClick={toggleMute} 
+                    sx={{ 
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        color: '#1db954',
+                        backgroundColor: 'rgba(29, 185, 84, 0.1)'
+                      }
+                    }}
+                  >
+                    {getVolumeIcon()}
                   </IconButton>
-                  
-                  <Tooltip title={repeatMode === 'one' ? "Repeat one" : repeatMode ? "Repeat all" : "Repeat off"}>
-                    <IconButton 
-                      onClick={handleRepeatClick} 
+                  <Slider
+                    value={muted ? 0 : volume}
+                    onChange={handleVolumeChange}
+                    sx={{
+                      mx: 1,
+                      color: '#1db954',
+                      height: 4,
+                      '& .MuiSlider-track': {
+                        background: 'linear-gradient(90deg, #1db954, #1ed760)',
+                        border: 'none'
+                      },
+                      '& .MuiSlider-thumb': {
+                        width: 12,
+                        height: 12,
+                        background: 'linear-gradient(45deg, #1db954, #1ed760)',
+                        border: '1px solid white',
+                        transition: '0.3s ease',
+                        '&:hover': {
+                          transform: 'scale(1.2)'
+                        }
+                      },
+                      '& .MuiSlider-rail': {
+                        opacity: 0.3,
+                        backgroundColor: 'rgba(255, 255, 255, 0.2)'
+                      }
+                    }}
+                  />
+                </Box>
+
+                {/* Queue Button */}
+                <Tooltip title="Queue" arrow>
+                  <IconButton 
+                    onClick={handleTogglePlaylist} 
+                    sx={{ 
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        color: '#1db954',
+                        backgroundColor: 'rgba(29, 185, 84, 0.1)',
+                        transform: 'scale(1.1)'
+                      }
+                    }}
+                  >
+                    <Badge 
+                      badgeContent={queue.length} 
+                      color="primary"
                       sx={{ 
-                        color: repeatMode ? '#1db954' : 'rgba(255, 255, 255, 0.7)',
-                        '&:hover': { color: repeatMode ? '#1db954' : 'white' }
+                        '& .MuiBadge-badge': { 
+                          bgcolor: '#1db954',
+                          color: 'white',
+                          fontWeight: 'bold',
+                          boxShadow: '0 2px 8px rgba(29, 185, 84, 0.4)'
+                        } 
                       }}
                     >
-                      {getRepeatIcon()}
-                    </IconButton>
-                  </Tooltip>
-                </Stack>
-                
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <IconButton onClick={handleLike} sx={{ color: isLiked ? '#ff4081' : 'rgba(255, 255, 255, 0.7)' }}>
-                    {isLiked ? <LikeIcon /> : <UnlikeIcon />}
+                      <PlaylistIcon />
+                    </Badge>
                   </IconButton>
-                  
-                  <IconButton sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                    <AddToPlaylistIcon />
+                </Tooltip>
+
+                {/* Expand/Collapse Button */}
+                <Tooltip title={isMinimized ? "Expand Player" : "Minimize Player"} arrow>
+                  <IconButton 
+                    onClick={handleToggleMinimized} 
+                    sx={{ 
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        color: '#1db954',
+                        backgroundColor: 'rgba(29, 185, 84, 0.1)',
+                        transform: 'scale(1.1)'
+                      }
+                    }}
+                  >
+                    {isMinimized ? <MaximizeIcon /> : <MinimizeIcon />}
                   </IconButton>
-                  
-                  <IconButton onClick={handleShare} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                    <ShareIcon />
-                  </IconButton>
-                </Stack>
+                </Tooltip>
               </Box>
-            </Box>
+            </Grow>
           </Box>
-        </Collapse>
-      </Card>
+
+          {/* Expanded Player Content */}
+          <Collapse in={!isMinimized} timeout={400}>
+            <Box sx={{ p: 3, pt: 0 }}>
+              {/* Mobile Progress Bar (only visible on small screens) */}
+              <Fade in={!isMinimized} timeout={600}>
+                <Box sx={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center', my: 2 }}>
+                  <Typography variant="caption" sx={{ color: '#b3b3b3', minWidth: '40px', textAlign: 'right' }}>
+                    {formatTime(progress)}
+                  </Typography>
+                  <Slider
+                    value={progress}
+                    max={duration || 100}
+                    onChange={handleProgressChange}
+                    sx={{
+                      mx: 2,
+                      color: '#1db954',
+                      height: 6,
+                      '& .MuiSlider-track': {
+                        background: 'linear-gradient(90deg, #1db954, #1ed760)',
+                        border: 'none',
+                        boxShadow: '0 2px 8px rgba(29, 185, 84, 0.3)'
+                      },
+                      '& .MuiSlider-thumb': {
+                        width: 16,
+                        height: 16,
+                        background: 'linear-gradient(45deg, #1db954, #1ed760)',
+                        border: '2px solid white'
+                      },
+                      '& .MuiSlider-rail': {
+                        opacity: 0.3,
+                        backgroundColor: 'rgba(255, 255, 255, 0.2)'
+                      }
+                    }}
+                  />
+                  <Typography variant="caption" sx={{ color: '#b3b3b3', minWidth: '40px' }}>
+                    {formatTime(duration)}
+                  </Typography>
+                </Box>
+              </Fade>
+
+              {/* Additional Controls */}
+              <Zoom in={!isMinimized} timeout={800}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2, mb: 3 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+                      <Tooltip title={isShuffled ? "Shuffle is on" : "Shuffle is off"} arrow>
+                        <IconButton 
+                          onClick={handleShuffleClick} 
+                          sx={{ 
+                            color: isShuffled ? '#1db954' : 'rgba(255, 255, 255, 0.7)',
+                            transition: 'all 0.3s ease',
+                            '&:hover': { 
+                              color: isShuffled ? '#1ed760' : '#1db954',
+                              backgroundColor: 'rgba(29, 185, 84, 0.1)',
+                              transform: 'scale(1.1)'
+                            }
+                          }}
+                        >
+                          <ShuffleIcon />
+                        </IconButton>
+                      </Tooltip>
+                      
+                      <IconButton 
+                        onClick={playPreviousTrack} 
+                        sx={{ 
+                          color: 'white',
+                          transition: 'all 0.3s ease',
+                          '&:hover': { 
+                            color: '#1db954',
+                            transform: 'scale(1.1)',
+                            backgroundColor: 'rgba(29, 185, 84, 0.1)'
+                          }
+                        }}
+                      >
+                        <PrevIcon sx={{ fontSize: 28 }} />
+                      </IconButton>
+                      
+                      <IconButton 
+                        onClick={handlePlayPause} 
+                        sx={{ 
+                          mx: 2, 
+                          color: 'white', 
+                          background: 'linear-gradient(45deg, #1db954, #1ed760)',
+                          width: 64,
+                          height: 64,
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          boxShadow: '0 8px 24px rgba(29, 185, 84, 0.4)',
+                          '&:hover': { 
+                            background: 'linear-gradient(45deg, #1ed760, #22e065)',
+                            transform: 'scale(1.05)',
+                            boxShadow: '0 12px 32px rgba(29, 185, 84, 0.6)'
+                          },
+                          '&:active': {
+                            transform: 'scale(0.95)'
+                          }
+                        }}
+                      >
+                        {isPlaying ? <PauseIcon sx={{ fontSize: 32 }} /> : <PlayIcon sx={{ fontSize: 32 }} />}
+                      </IconButton>
+                      
+                      <IconButton 
+                        onClick={playNextTrack} 
+                        sx={{ 
+                          color: 'white',
+                          transition: 'all 0.3s ease',
+                          '&:hover': { 
+                            color: '#1db954',
+                            transform: 'scale(1.1)',
+                            backgroundColor: 'rgba(29, 185, 84, 0.1)'
+                          }
+                        }}
+                      >
+                        <NextIcon sx={{ fontSize: 28 }} />
+                      </IconButton>
+                      
+                      <Tooltip title={repeatMode === 'one' ? "Repeat one" : repeatMode ? "Repeat all" : "Repeat off"} arrow>
+                        <IconButton 
+                          onClick={handleRepeatClick} 
+                          sx={{ 
+                            color: repeatMode ? '#1db954' : 'rgba(255, 255, 255, 0.7)',
+                            transition: 'all 0.3s ease',
+                            '&:hover': { 
+                              color: repeatMode ? '#1ed760' : '#1db954',
+                              backgroundColor: 'rgba(29, 185, 84, 0.1)',
+                              transform: 'scale(1.1)'
+                            }
+                          }}
+                        >
+                          {getRepeatIcon()}
+                        </IconButton>
+                      </Tooltip>
+                    </Stack>
+                    
+                    <Stack direction="row" spacing={3} alignItems="center">
+                      <Tooltip title={isLiked ? "Remove from favorites" : "Add to favorites"} arrow>
+                        <IconButton 
+                          onClick={handleLike} 
+                          sx={{ 
+                            color: isLiked ? '#ff4081' : 'rgba(255, 255, 255, 0.7)',
+                            transition: 'all 0.3s ease',
+                            '&:hover': {
+                              color: isLiked ? '#ff6b9d' : '#ff4081',
+                              backgroundColor: isLiked ? 'rgba(255, 64, 129, 0.1)' : 'rgba(255, 64, 129, 0.1)',
+                              transform: 'scale(1.1)'
+                            }
+                          }}
+                        >
+                          {isLiked ? <LikeIcon /> : <UnlikeIcon />}
+                        </IconButton>
+                      </Tooltip>
+                      
+                      {/* <IconButton sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                        <AddToPlaylistIcon />
+                      </IconButton> */}
+                      
+                      <Tooltip title="Share track" arrow>
+                        <IconButton 
+                          onClick={handleShare} 
+                          sx={{ 
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            transition: 'all 0.3s ease',
+                            '&:hover': {
+                              color: '#1db954',
+                              backgroundColor: 'rgba(29, 185, 84, 0.1)',
+                              transform: 'scale(1.1)'
+                            }
+                          }}
+                        >
+                          <ShareIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </Stack>
+                  </Box>
+                </Box>
+              </Zoom>
+            </Box>
+          </Collapse>
+        </Card>
+      </Fade>
 
       {/* Queue Drawer */}
       <Drawer
@@ -529,113 +867,156 @@ const MusicPlayer = () => {
           sx: {
             width: { xs: '100%', sm: 400 },
             maxWidth: '100%',
-            background: 'rgba(18, 18, 28, 0.98)',
-            backdropFilter: 'blur(10px)',
-            boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.5)',
+            background: 'linear-gradient(135deg, rgba(18, 18, 28, 0.98) 0%, rgba(25, 25, 40, 0.98) 100%)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            boxShadow: '-8px 0 32px rgba(0, 0, 0, 0.5)',
             borderLeft: '1px solid rgba(255, 255, 255, 0.1)'
           }
         }}
+        transitionDuration={400}
       >
-        <Box sx={{ p: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
+        <Box sx={{ p: 3 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                color: 'white', 
+                fontWeight: 'bold',
+                background: 'linear-gradient(45deg, #ffffff, #f0f0f0)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}
+            >
               Queue
             </Typography>
-            <IconButton onClick={handleTogglePlaylist} sx={{ color: 'white' }}>
+            <IconButton 
+              onClick={handleTogglePlaylist} 
+              sx={{ 
+                color: 'white',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  color: '#1db954',
+                  backgroundColor: 'rgba(29, 185, 84, 0.1)',
+                  transform: 'rotate(90deg)'
+                }
+              }}
+            >
               <CloseIcon />
             </IconButton>
           </Box>
           
-          <Divider sx={{ mb: 2, borderColor: 'rgba(255, 255, 255, 0.1)' }} />
+          <Divider sx={{ mb: 3, borderColor: 'rgba(255, 255, 255, 0.1)' }} />
           
-          <List sx={{ maxHeight: 'calc(100vh - 100px)', overflow: 'auto' }}>
+          <List sx={{ maxHeight: 'calc(100vh - 140px)', overflow: 'auto' }}>
             {queue.length > 0 ? (
               queue.map((track, index) => (
-                <ListItem 
-                  key={`${track.id}-${index}`}
-                  button
-                  selected={index === queueIndex}
-                  sx={{
-                    borderRadius: 1,
-                    mb: 1,
-                    bgcolor: index === queueIndex ? 'rgba(29, 185, 84, 0.1)' : 'transparent',
-                    '&:hover': {
-                      bgcolor: 'rgba(255, 255, 255, 0.05)'
-                    },
-                    '&.Mui-selected': {
-                      bgcolor: 'rgba(29, 185, 84, 0.15)',
+                <Fade in={true} timeout={300 + index * 100} key={`${track.id}-${index}`}>
+                  <ListItem 
+                    button
+                    selected={index === queueIndex}
+                    sx={{
+                      borderRadius: 2,
+                      mb: 1,
+                      bgcolor: index === queueIndex ? 'rgba(29, 185, 84, 0.15)' : 'transparent',
+                      transition: 'all 0.3s ease',
                       '&:hover': {
-                        bgcolor: 'rgba(29, 185, 84, 0.2)'
-                      }
-                    }
-                  }}
-                  onClick={() => playTrack(track)}
-                >
-                  <ListItemAvatar>
-                    <Avatar 
-                      variant="rounded" 
-                      src={track.coverUrl || 'https://via.placeholder.com/40'}
-                      alt={track.title}
-                    />
-                  </ListItemAvatar>
-                  <ListItemText 
-                    primary={track.title} 
-                    secondary={track.artist}
-                    primaryTypographyProps={{
-                      sx: { 
-                        color: 'white',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
+                        bgcolor: index === queueIndex ? 'rgba(29, 185, 84, 0.25)' : 'rgba(255, 255, 255, 0.05)',
+                        transform: 'translateX(4px)'
+                      },
+                      '&.Mui-selected': {
+                        bgcolor: 'rgba(29, 185, 84, 0.15)',
+                        '&:hover': {
+                          bgcolor: 'rgba(29, 185, 84, 0.25)'
+                        }
                       }
                     }}
-                    secondaryTypographyProps={{
-                      sx: { 
-                        color: '#b3b3b3',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }
-                    }}
-                  />
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    {index === queueIndex && isPlaying && (
-                      <Box sx={{ 
-                        width: 4, 
-                        height: 4, 
-                        borderRadius: '50%', 
-                        bgcolor: '#1db954',
-                        mr: 1,
-                        animation: 'pulse 2s infinite'
-                      }} />
-                    )}
-                    <Typography variant="caption" sx={{ color: '#b3b3b3', mr: 1 }}>
-                      {formatTime(track.duration || 0)}
-                    </Typography>
-                    {index !== queueIndex && (
-                      <IconButton 
-                        size="small" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRemoveFromQueue(track.id);
+                    onClick={() => playTrack(track)}
+                  >
+                    <ListItemAvatar>
+                      <Avatar 
+                        variant="rounded" 
+                        src={track.coverUrl || 'https://via.placeholder.com/40'}
+                        alt={track.title}
+                        sx={{
+                          transition: 'transform 0.3s ease',
+                          '&:hover': {
+                            transform: 'scale(1.1)'
+                          }
                         }}
-                        sx={{ color: 'rgba(255, 255, 255, 0.5)' }}
-                      >
-                        <RemoveCircleOutlineIcon fontSize="small" />
-                      </IconButton>
-                    )}
-                  </Box>
-                </ListItem>
+                      />
+                    </ListItemAvatar>
+                    <ListItemText 
+                      primary={track.title} 
+                      secondary={track.artist}
+                      primaryTypographyProps={{
+                        sx: { 
+                          color: 'white',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          fontWeight: index === queueIndex ? 'bold' : 'normal'
+                        }
+                      }}
+                      secondaryTypographyProps={{
+                        sx: { 
+                          color: '#b3b3b3',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }
+                      }}
+                    />
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      {index === queueIndex && isPlaying && (
+                        <Box sx={{ 
+                          width: 6, 
+                          height: 6, 
+                          borderRadius: '50%', 
+                          bgcolor: '#1db954',
+                          mr: 1,
+                          animation: 'pulse 2s infinite',
+                          boxShadow: '0 0 8px rgba(29, 185, 84, 0.6)'
+                        }} />
+                      )}
+                      <Typography variant="caption" sx={{ color: '#b3b3b3', mr: 1 }}>
+                        {formatTime(track.duration || 0)}
+                      </Typography>
+                      {index !== queueIndex && (
+                        <IconButton 
+                          size="small" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveFromQueue(track.id);
+                          }}
+                          sx={{ 
+                            color: 'rgba(255, 255, 255, 0.5)',
+                            transition: 'all 0.3s ease',
+                            '&:hover': {
+                              color: '#ff4444',
+                              backgroundColor: 'rgba(255, 68, 68, 0.1)',
+                              transform: 'scale(1.1)'
+                            }
+                          }}
+                        >
+                          <RemoveCircleOutlineIcon fontSize="small" />
+                        </IconButton>
+                      )}
+                    </Box>
+                  </ListItem>
+                </Fade>
               ))
             ) : (
-              <Box sx={{ textAlign: 'center', py: 4 }}>
-                <Typography variant="body1" sx={{ color: '#b3b3b3' }}>
-                  Your queue is empty
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#666', mt: 1 }}>
-                  Add songs to your queue to listen to them next
-                </Typography>
-              </Box>
+              <Fade in={true} timeout={600}>
+                <Box sx={{ textAlign: 'center', py: 6 }}>
+                  <Typography variant="body1" sx={{ color: '#b3b3b3', mb: 1 }}>
+                    Your queue is empty
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#666' }}>
+                    Add songs to your queue to listen to them next
+                  </Typography>
+                </Box>
+              </Fade>
             )}
           </List>
         </Box>
@@ -648,6 +1029,24 @@ const MusicPlayer = () => {
         item={currentTrack}
         type="track"
       />
+
+      {/* CSS Animations */}
+      <style>{`
+        @keyframes pulse {
+          0% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.7;
+            transform: scale(1.05);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+      `}</style>
     </>
   );
 };

@@ -8,6 +8,7 @@ import { Toaster } from 'react-hot-toast';
 // Contexts
 import { AuthProvider } from './contexts/AuthContext';
 import { PlayerProvider } from './contexts/PlayerContext';
+import { SidebarProvider } from './contexts/SidebarContext';
 
 // Components
 import Navbar from './components/Layout/Navbar';
@@ -40,51 +41,53 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
-        <PlayerProvider>
-          <Router>
-            <Box sx={{ 
-              display: 'flex', 
-              height: '100vh', 
-              overflow: 'hidden',
-              background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 75%, #0f3460 100%)',
-              position: 'relative',
-              '&::before': {
-                content: '""',
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'radial-gradient(circle at 30% 40%, rgba(139, 92, 246, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.1) 0%, transparent 50%), radial-gradient(circle at 40% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%)',
-                pointerEvents: 'none',
-                zIndex: 0,
-              }
-            }}>
-              <Routes>
-                {/* Auth Routes */}
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                
-                {/* Protected Routes */}
-                <Route path="/*" element={
-                  <ProtectedRoute>
-                    <MainLayout />
-                  </ProtectedRoute>
-                } />
-              </Routes>
-            </Box>
-            <Toaster
-              position="bottom-right"
-              toastOptions={{
-                duration: 3000,
-                style: {
-                  background: '#282828',
-                  color: '#fff',
-                },
-              }}
-            />
-          </Router>
-        </PlayerProvider>
+        <SidebarProvider>
+          <PlayerProvider>
+            <Router>
+              <Box sx={{ 
+                display: 'flex', 
+                height: '100vh', 
+                overflow: 'hidden',
+                background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 75%, #0f3460 100%)',
+                position: 'relative',
+                '&::before': {
+                  content: '""',
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'radial-gradient(circle at 30% 40%, rgba(139, 92, 246, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.1) 0%, transparent 50%), radial-gradient(circle at 40% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%)',
+                  pointerEvents: 'none',
+                  zIndex: 0,
+                }
+              }}>
+                <Routes>
+                  {/* Auth Routes */}
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  
+                  {/* Protected Routes */}
+                  <Route path="/*" element={
+                    <ProtectedRoute>
+                      <MainLayout />
+                    </ProtectedRoute>
+                  } />
+                </Routes>
+              </Box>
+              <Toaster
+                position="bottom-right"
+                toastOptions={{
+                  duration: 3000,
+                  style: {
+                    background: '#282828',
+                    color: '#fff',
+                  },
+                }}
+              />
+            </Router>
+          </PlayerProvider>
+        </SidebarProvider>
       </AuthProvider>
     </ThemeProvider>
   );

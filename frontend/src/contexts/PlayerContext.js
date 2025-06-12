@@ -508,6 +508,70 @@ export const PlayerProvider = ({ children }) => {
     }
   };
   
+  // Dừng phát nhạc và lưu lịch sử
+  const stopTrack = async () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    
+    // Lưu lịch sử nghe nhạc trước khi dừng
+    if (currentTrack && playStartTime) {
+      const listenedSeconds = Math.floor((Date.now() - playStartTime) / 1000);
+      const totalListened = listenedDuration + listenedSeconds;
+      
+      try {
+        // Lưu lịch sử nghe nhạc
+        await trackPlayDuration(currentTrack.id, totalListened);
+        console.log(`Saved listening history: ${totalListened} seconds for track ${currentTrack.id}`);
+      } catch (error) {
+        console.error('Error saving listening history:', error);
+      }
+    }
+    
+    setIsPlaying(false);
+    setProgress(0);
+    setPlayStartTime(null);
+    setListenedDuration(0);
+  };
+
+  // Đóng player hoàn toàn
+  const closePlayer = async () => {
+    // Lưu lịch sử trước khi đóng
+    if (currentTrack && playStartTime) {
+      const listenedSeconds = Math.floor((Date.now() - playStartTime) / 1000);
+      const totalListened = listenedDuration + listenedSeconds;
+      
+      try {
+        await trackPlayDuration(currentTrack.id, totalListened);
+        console.log(`Saved listening history before closing: ${totalListened} seconds for track ${currentTrack.id}`);
+      } catch (error) {
+        console.error('Error saving listening history before closing:', error);
+      }
+    }
+    
+    // Dừng audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = '';
+    }
+    
+    // Reset tất cả state
+    setCurrentTrack(null);
+    setCurrentAlbum(null);
+    setCurrentPlaylist(null);
+    setIsPlaying(false);
+    setProgress(0);
+    setDuration(0);
+    setQueue([]);
+    setQueueIndex(0);
+    setPlayStartTime(null);
+    setListenedDuration(0);
+    
+    // Clear intervals
+    clearInterval(progressIntervalRef.current);
+  };
+  
   // When component unmounts or track changes, track final play duration
   useEffect(() => {
     return () => {
@@ -539,7 +603,8 @@ export const PlayerProvider = ({ children }) => {
     playPlaylistById,
     pauseTrack,
     resumeTrack,
-    pausePlayback,
+    stopTrack,
+    closePlayer,
     seekTo,
     playNextTrack,
     playPreviousTrack,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   Box, 
   Drawer, 
@@ -32,19 +32,15 @@ import {
   PersonAdd as PersonAddIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
-
-const EXPANDED_WIDTH = 280;
-const COLLAPSED_WIDTH = 72;
+import { useSidebar } from '../../contexts/SidebarContext';
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
-  
-  const drawerWidth = isCollapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH;
+  const { isCollapsed, sidebarWidth, toggleSidebar } = useSidebar();
 
   const menuItems = [
     { text: 'Home', icon: <HomeIcon />, path: '/', color: '#6366f1' },
@@ -67,7 +63,7 @@ const Sidebar = () => {
   };
 
   const handleToggle = () => {
-    setIsCollapsed(!isCollapsed);
+    toggleSidebar();
   };
 
   const MenuItem = ({ item, isLibraryItem = false }) => {
@@ -171,11 +167,11 @@ const Sidebar = () => {
     <Drawer
       variant="permanent"
       sx={{
-        width: drawerWidth,
+        width: sidebarWidth,
         flexShrink: 0,
         transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         '& .MuiDrawer-paper': {
-          width: drawerWidth,
+          width: sidebarWidth,
           boxSizing: 'border-box',
           background: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
           borderRight: '1px solid rgba(255,255,255,0.1)',
