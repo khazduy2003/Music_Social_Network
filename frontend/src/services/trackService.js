@@ -408,7 +408,7 @@ export const trackService = {
       if (userId && listenedDuration) {
         await api.post(`/tracks/${trackId}/play`, null, {
           params: {
-            userId,
+            userId, 
             listenedDuration
           }
         });

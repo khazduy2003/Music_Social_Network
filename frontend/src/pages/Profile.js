@@ -205,7 +205,7 @@ const Profile = () => {
   
   const loadListeningHistory = async (user) => {
     try {
-      const history = await listeningHistoryService.getUserHistory(user.id, 0, 20);
+      const history = await listeningHistoryService.getUserHistory(user.id, 0, 100);
       setListeningHistory(history.content || []);
       
       // Update stats with total count from pagination info

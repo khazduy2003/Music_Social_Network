@@ -278,8 +278,8 @@ const Sidebar = () => {
               onClick={handleToggle}
               sx={{
                 position: 'absolute',
-                top: 16,
-                right: 16,
+                top: 6,
+                right: -2,
                 color: 'white',
                 background: 'rgba(255,255,255,0.1)',
                 backdropFilter: 'blur(10px)',
@@ -398,29 +398,6 @@ const Sidebar = () => {
         <List sx={{ width: '100%', mb: 2 }}>
           <MenuItem item={{ text: 'Discover Users', icon: <PersonAddIcon />, path: '/discover-users', color: '#06b6d4' }} />
         </List>
-
-        {/* Toggle button - at the bottom */}
-        <Box sx={{ 
-          mt: 'auto', 
-          pt: 2, 
-          borderTop: '1px solid rgba(255,255,255,0.1)',
-          display: 'flex',
-          justifyContent: 'center'
-        }}>
-          <IconButton 
-            onClick={handleToggle}
-            sx={{ 
-              color: 'rgba(255,255,255,0.7)',
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              '&:hover': {
-                color: 'white',
-                backgroundColor: 'rgba(255,255,255,0.1)',
-              }
-            }}
-          >
-            {isCollapsed ? <MenuIcon /> : <ChevronLeftIcon />}
-          </IconButton>
-        </Box>
       </Box>
     </Drawer>
   );

@@ -14,8 +14,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-06-12T03:12:34+0700",
-    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.15 (Oracle Corporation)"
+    date = "2025-06-12T18:13:16+0700",
+    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.42.0.v20250514-1000, environment: Java 21.0.7 (Eclipse Adoptium)"
 )
 @Component
 public class TrackMapperImpl implements TrackMapper {
@@ -37,20 +37,20 @@ public class TrackMapperImpl implements TrackMapper {
             trackDTO.setLikedBy( userSetToUserDTOSet( track.getLikedBy() ) );
             trackDTO.setJamendoId( track.getJamendoId() );
             trackDTO.setRating( track.getRating() );
-            trackDTO.setId( track.getId() );
-            trackDTO.setTitle( track.getTitle() );
-            trackDTO.setArtist( track.getArtist() );
             trackDTO.setAlbum( track.getAlbum() );
-            trackDTO.setGenre( track.getGenre() );
-            trackDTO.setCoverImageUrl( track.getCoverImageUrl() );
+            trackDTO.setArtist( track.getArtist() );
             trackDTO.setAudioUrl( track.getAudioUrl() );
-            trackDTO.setDuration( track.getDuration() );
-            trackDTO.setUser( userMapper.toDTO( track.getUser() ) );
-            trackDTO.setPlayCount( track.getPlayCount() );
             trackDTO.setAverageRating( track.getAverageRating() );
-            trackDTO.setRatingCount( track.getRatingCount() );
+            trackDTO.setCoverImageUrl( track.getCoverImageUrl() );
             trackDTO.setCreatedAt( track.getCreatedAt() );
+            trackDTO.setDuration( track.getDuration() );
+            trackDTO.setGenre( track.getGenre() );
+            trackDTO.setId( track.getId() );
+            trackDTO.setPlayCount( track.getPlayCount() );
+            trackDTO.setRatingCount( track.getRatingCount() );
+            trackDTO.setTitle( track.getTitle() );
             trackDTO.setUpdatedAt( track.getUpdatedAt() );
+            trackDTO.setUser( userMapper.toDTO( track.getUser() ) );
         }
         trackDTO.setLikeCount( track.getLikedBy().size() );
         trackDTO.setIsLiked( currentUserId != null && track.getLikedBy().stream().anyMatch(user -> user.getId().equals(currentUserId)) );
@@ -67,13 +67,13 @@ public class TrackMapperImpl implements TrackMapper {
 
         Track track = new Track();
 
-        track.setTitle( dto.getTitle() );
-        track.setArtist( dto.getArtist() );
         track.setAlbum( dto.getAlbum() );
-        track.setGenre( dto.getGenre() );
-        track.setCoverImageUrl( dto.getCoverImageUrl() );
+        track.setArtist( dto.getArtist() );
         track.setAudioUrl( dto.getAudioUrl() );
+        track.setCoverImageUrl( dto.getCoverImageUrl() );
         track.setDuration( dto.getDuration() );
+        track.setGenre( dto.getGenre() );
+        track.setTitle( dto.getTitle() );
 
         return track;
     }
@@ -84,11 +84,11 @@ public class TrackMapperImpl implements TrackMapper {
             return;
         }
 
-        track.setTitle( dto.getTitle() );
-        track.setArtist( dto.getArtist() );
         track.setAlbum( dto.getAlbum() );
-        track.setGenre( dto.getGenre() );
+        track.setArtist( dto.getArtist() );
         track.setCoverImageUrl( dto.getCoverImageUrl() );
+        track.setGenre( dto.getGenre() );
+        track.setTitle( dto.getTitle() );
     }
 
     @Override

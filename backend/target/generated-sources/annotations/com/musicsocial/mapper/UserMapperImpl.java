@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-06-12T03:12:34+0700",
-    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.15 (Oracle Corporation)"
+    date = "2025-06-12T18:13:17+0700",
+    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.42.0.v20250514-1000, environment: Java 21.0.7 (Eclipse Adoptium)"
 )
 @Component
 public class UserMapperImpl implements UserMapper {
@@ -24,13 +24,13 @@ public class UserMapperImpl implements UserMapper {
         UserDTO userDTO = new UserDTO();
 
         userDTO.setAvatarUrl( user.getProfileImageUrl() );
-        userDTO.setId( user.getId() );
-        userDTO.setUsername( user.getUsername() );
-        userDTO.setEmail( user.getEmail() );
-        userDTO.setFullName( user.getFullName() );
         userDTO.setBio( user.getBio() );
         userDTO.setCreatedAt( user.getCreatedAt() );
+        userDTO.setEmail( user.getEmail() );
+        userDTO.setFullName( user.getFullName() );
+        userDTO.setId( user.getId() );
         userDTO.setUpdatedAt( user.getUpdatedAt() );
+        userDTO.setUsername( user.getUsername() );
 
         userDTO.setFollowersCount( user.getFollowers().size() );
         userDTO.setFollowingCount( user.getFollowing().size() );
@@ -46,8 +46,8 @@ public class UserMapperImpl implements UserMapper {
 
         User user = new User();
 
-        user.setUsername( dto.getUsername() );
         user.setEmail( dto.getEmail() );
+        user.setUsername( dto.getUsername() );
 
         return user;
     }
@@ -58,7 +58,7 @@ public class UserMapperImpl implements UserMapper {
             return;
         }
 
-        user.setFullName( dto.getFullName() );
         user.setBio( dto.getBio() );
+        user.setFullName( dto.getFullName() );
     }
 }

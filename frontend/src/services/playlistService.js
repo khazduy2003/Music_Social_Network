@@ -17,7 +17,16 @@ export const playlistService = {
     try {
       const response = await api.get(`/playlists/user/${username}`);
       console.log('User playlists response for', username, ':', response.data);
-      return response.data.content || [];
+      
+      // Kiểm tra và ghi log trạng thái isPublic của từng playlist
+      const playlists = response.data.content || [];
+      playlists.forEach(playlist => {
+        console.log(`Playlist ${playlist.id} - ${playlist.name} - isPublic:`, playlist.isPublic, 
+          'type:', typeof playlist.isPublic, 
+          'stringified:', JSON.stringify(playlist.isPublic));
+      });
+      
+      return playlists;
     } catch (error) {
       console.error('Error fetching user playlists:', error);
       return [];

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Container, Grid, Card, CardMedia, CardContent, 
-  CardActions, IconButton, Skeleton, Button, CircularProgress, Tabs, Tab, Chip, Avatar } from '@mui/material';
-import { PlayArrow, Pause, Favorite, FavoriteBorder, Add, Share, PlaylistAdd, PlaylistPlay, QueueMusic as QueueMusicIcon, Public as PublicIcon } from '@mui/icons-material';
+  CardActions, IconButton, Skeleton, Button, CircularProgress, Tabs, Tab, Chip, Avatar, Tooltip } from '@mui/material';
+import { PlayArrow, Pause, Favorite, FavoriteBorder, Add, Share, PlaylistAdd, PlaylistPlay, QueueMusic as QueueMusicIcon, Public as PublicIcon, Lock as LockIcon } from '@mui/icons-material';
 import { trackService } from '../services/trackService';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -49,6 +49,9 @@ const Home = () => {
     playAllTracks
   } = usePlayerContext();
   
+  // Default image for tracks and playlists
+  const defaultCoverImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjMUUxRTJFIi8+CjxwYXRoIGQ9Ik0xNTAgMTAwQzE3Mi4wOTEgMTAwIDE5MCA4Mi4wOTE0IDE5MCA2MEMxOTAgMzcuOTA4NiAxNzIuMDkxIDIwIDE1MCAyMEMxMjcuOTA5IDIwIDExMCAzNy45MDg2IDExMCA2MEMxMTAgODIuMDkxNCAxMjcuOTA5IDEwMCAxNTAgMTAwWiIgZmlsbD0iIzFEQjk1NCIvPgo8cGF0aCBkPSJNMjEwIDI4MEgyMDBDMjAwIDI1My40NzggMTg5LjQ2NCAyMjggMTcwLjcxMSAyMDkuMjg5QzE1MS45NTcgMTkwLjUzNiAxMjYuNTIyIDE4MCAxMDAgMThIODBDODAuMDAwMSAyMTkuMzMgOTEuMDcxNCAyNTcuNDg4IDExMS43MTcgMjg5SDgwVjI5MEg5MEg5NS44Mjg5QzEwNi41IDI5My4zMzMgMTE4LjUgMjk1IDEzMCAyOTVIMTcwQzE4MS41IDI5NSAxOTMuNSAyOTMuMzMzIDIwNC4xNzEgMjkwSDIxMFYyODBaIiBmaWxsPSIjMURCOTU0Ii8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTUwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjQjNCM0IzIiBmb250LXNpemU9IjE2IiBmb250LWZhbWlseT0iQXJpYWwiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4=';
+
   useEffect(() => {
     // Fetch trending tracks (most played)
     const fetchTrendingTracks = async () => {
@@ -137,7 +140,44 @@ const Home = () => {
       try {
         setLoadingPublicPlaylists(true);
         const playlists = await playlistService.getPublicPlaylists();
-        setPublicPlaylists(playlists);
+        console.log('DEBUG - Public playlists:', playlists);
+        
+        // Đảm bảo tất cả playlist đều có isPublic = true và lấy thêm thông tin chi tiết
+        const playlistsWithDetails = await Promise.all(
+          playlists.map(async (playlist) => {
+            try {
+              // Lấy thông tin chi tiết của playlist (bao gồm danh sách tracks)
+              const playlistDetail = await playlistService.getPlaylistById(playlist.id);
+              
+              // Tính toán tổng thời gian dựa trên các bài hát
+              let totalDuration = 0;
+              if (playlistDetail?.tracks?.length > 0) {
+                totalDuration = playlistDetail.tracks.reduce(
+                  (total, track) => total + (track.duration || 0), 
+                  0
+                );
+              }
+              
+              return {
+                ...playlist,
+                ...playlistDetail,
+                isPublic: true, // Đảm bảo isPublic = true cho tất cả playlist công khai
+                totalDuration: totalDuration, // Thêm tổng thời gian
+                trackCount: playlistDetail?.tracks?.length || playlist.trackCount || 0 // Đảm bảo có trackCount
+              };
+            } catch (error) {
+              console.error(`Error fetching details for playlist ${playlist.id}:`, error);
+              return {
+                ...playlist,
+                isPublic: true,
+                totalDuration: 0
+              };
+            }
+          })
+        );
+        
+        console.log('DEBUG - Playlists with details:', playlistsWithDetails);
+        setPublicPlaylists(playlistsWithDetails);
       } catch (error) {
         console.error('Error fetching public playlists:', error);
       } finally {
@@ -232,19 +272,28 @@ const Home = () => {
   };
 
   const handleAddToQueue = (track) => {
-    const success = addToQueue(track);
-    if (success) {
-      toast.success(`Added "${track.title}" to queue`);
+    if (!track) return;
+    addToQueue(track);
+    toast.success(`Added "${track.title}" to queue`);
+  };
+
+  const formatDuration = (totalSeconds) => {
+    if (!totalSeconds) return '0 min';
+    
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
     }
+    return `${minutes} min`;
   };
 
   const handlePlayAll = (tracks) => {
-    if (tracks && tracks.length > 0) {
-      playAllTracks(tracks);
-      toast.success('Playing all tracks');
-    } else {
-      toast.error('No tracks available to play');
-    }
+    if (!tracks || tracks.length === 0) return;
+    
+    playAllTracks(tracks);
+    toast.success(`Playing ${tracks.length} tracks`);
   };
 
   const handleRecommendationTabChange = (event, newValue) => {
@@ -323,6 +372,29 @@ const Home = () => {
     setShareModalOpen(true);
   };
 
+  const handleLikePlaylist = async (playlist) => {
+    if (!isAuthenticated) {
+      toast.error('Please log in to like playlists');
+      return;
+    }
+    
+    try {
+      await playlistService.toggleLike(playlist.id);
+      
+      // Update the playlists state to reflect the change
+      setPublicPlaylists(prevPlaylists => 
+        prevPlaylists.map(p => 
+          p.id === playlist.id ? { ...p, isLiked: !p.isLiked } : p
+        )
+      );
+      
+      toast.success(playlist.isLiked ? 'Removed from favorites' : 'Added to favorites');
+    } catch (err) {
+      console.error('Error toggling playlist like:', err);
+      toast.error('Failed to update favorites');
+    }
+  };
+
   const getCurrentRecommendations = () => {
     switch (recommendationTab) {
       case 0:
@@ -342,12 +414,16 @@ const Home = () => {
     const isCurrentlyPlaying = currentTrack && currentTrack.id === track.id && isPlaying;
     
     return (
-      <Grid item xs={12} sm={6} md={4} lg={3} key={track.id || index}>
+      <Grid item xs={6} sm={4} md={3} lg={2} key={track.id || index}>
         <Card sx={{ 
           borderRadius: 2,
           background: 'linear-gradient(145deg, #1e1e2e, #2a2a40)',
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
           height: '100%',
+          width: '100%',
+          maxWidth: '240px',
+          minWidth: '240px',
+          margin: '0 auto',
           display: 'flex',
           flexDirection: 'column',
           transition: 'transform 0.3s ease',
@@ -356,13 +432,24 @@ const Home = () => {
             boxShadow: '0 12px 40px rgba(0, 0, 0, 0.3)'
           }
         }}>
-          <Box sx={{ position: 'relative' }}>
+          <Box sx={{ position: 'relative', paddingTop: '100%', width: '100%', overflow: 'hidden' }}>
             <CardMedia
               component="img"
-              height="180"
-              image={track.imageUrl || track.coverImageUrl || 'https://source.unsplash.com/random/300x300/?music'}
+              image={track.imageUrl || track.coverImageUrl || defaultCoverImage}
               alt={track.title}
-              sx={{ objectFit: 'cover' }}
+              onError={(e) => {
+                e.target.onerror = null; 
+                e.target.src = defaultCoverImage;
+              }}
+              sx={{ 
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center'
+              }}
             />
             <IconButton 
               sx={{ 
@@ -370,24 +457,28 @@ const Home = () => {
                 bottom: 8, 
                 right: 8,
                 background: 'rgba(0,0,0,0.6)',
+                width: 36,
+                height: 36,
                 '&:hover': { background: 'rgba(29, 185, 84, 0.8)' }
               }}
               onClick={() => handlePlayTrack(track)}
             >
-              {isCurrentlyPlaying ? <Pause /> : <PlayArrow />}
+              {isCurrentlyPlaying ? <Pause fontSize="small" /> : <PlayArrow fontSize="small" />}
             </IconButton>
           </Box>
           
-          <CardContent sx={{ flexGrow: 1 }}>
+          <CardContent sx={{ flexGrow: 1, height: '100px', maxHeight: '100px', p: 1.5 }}>
             <Typography 
-              variant="h6" 
+              variant="subtitle1"
               component="div" 
               sx={{ 
                 color: 'white',
                 fontWeight: 'bold',
-                textOverflow: 'ellipsis',
                 overflow: 'hidden',
-                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis',
+                display: '-webkit-box',
+                WebkitLineClamp: 1,
+                WebkitBoxOrient: 'vertical',
                 cursor: 'pointer',
                 '&:hover': {
                   textDecoration: 'underline'
@@ -403,9 +494,12 @@ const Home = () => {
               sx={{ 
                 color: '#b3b3b3',
                 mb: 1,
-                textOverflow: 'ellipsis',
                 overflow: 'hidden',
-                whiteSpace: 'nowrap'
+                textOverflow: 'ellipsis',
+                display: '-webkit-box',
+                WebkitLineClamp: 1,
+                WebkitBoxOrient: 'vertical',
+                fontSize: '0.8rem'
               }}
             >
               {track.artist}
@@ -416,7 +510,7 @@ const Home = () => {
                 display: 'inline-block',
                 background: 'rgba(29, 185, 84, 0.2)',
                 color: '#1db954',
-                padding: '3px 8px',
+                padding: '2px 6px',
                 borderRadius: 10,
                 fontSize: '0.7rem'
               }}
@@ -425,37 +519,37 @@ const Home = () => {
             </Typography>
           </CardContent>
           
-          <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
+          <CardActions sx={{ justifyContent: 'space-between', px: 1.5, pb: 1.5, pt: 0 }}>
             <Box>
               <IconButton 
                 size="small" 
                 onClick={() => handleLikeTrack(track.id)}
-                sx={{ color: track.isLiked ? '#ec4899' : 'white' }}
+                sx={{ color: track.isLiked ? '#ec4899' : 'white', padding: 0.5 }}
               >
-                {track.isLiked ? <Favorite /> : <FavoriteBorder />}
+                {track.isLiked ? <Favorite fontSize="small" /> : <FavoriteBorder fontSize="small" />}
               </IconButton>
               <IconButton 
                 size="small" 
                 onClick={() => handleAddToPlaylist(track)}
-                sx={{ color: 'white' }}
+                sx={{ color: 'white', padding: 0.5 }}
               >
-                <Add />
+                <Add fontSize="small" />
               </IconButton>
               <IconButton 
                 size="small" 
                 onClick={() => handleAddToQueue(track)}
-                sx={{ color: 'white' }}
+                sx={{ color: 'white', padding: 0.5 }}
                 title="Add to queue"
               >
-                <PlaylistAdd />
+                <QueueMusicIcon fontSize="small" />
               </IconButton>
             </Box>
             <IconButton 
               size="small" 
               onClick={() => handleShareTrack(track)}
-              sx={{ color: 'white' }}
+              sx={{ color: 'white', padding: 0.5 }}
             >
-              <Share />
+              <Share fontSize="small" />
             </IconButton>
           </CardActions>
         </Card>
@@ -464,144 +558,190 @@ const Home = () => {
   };
 
   // Render playlist card
-  const renderPlaylistCard = (playlist, index) => {
+  const renderPlaylistCard = (playlist) => {
     return (
-      <Grid item xs={12} sm={6} md={4} lg={3} key={playlist.id || index}>
-        <Card sx={{ 
-          borderRadius: 2,
-          background: 'linear-gradient(145deg, #1e1e2e, #2a2a40)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          transition: 'transform 0.3s ease',
-          '&:hover': {
-            transform: 'translateY(-5px)',
-            boxShadow: '0 12px 40px rgba(0, 0, 0, 0.3)'
-          },
-          cursor: 'pointer'
-        }}
-        onClick={() => navigate(`/playlists/${playlist.id}`)}
+      <Grid item xs={6} sm={4} md={3} lg={2} key={playlist.id}>
+        <Card 
+          sx={{ 
+            height: '100%', 
+            width: '100%',
+            maxWidth: '240px',
+            minWidth: '240px',
+            margin: '0 auto',
+            backgroundColor: 'rgba(20, 20, 30, 0.8)',
+            borderRadius: 2,
+            overflow: 'hidden',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              transform: 'translateY(-5px)',
+              boxShadow: '0 12px 20px rgba(0,0,0,0.3)',
+              '& .MuiCardMedia-root': {
+                transform: 'scale(1.05)'
+              }
+            },
+            cursor: 'pointer'
+          }}
+          onClick={() => navigate(`/playlists/${playlist.id}`)}
         >
-          <Box sx={{ position: 'relative' }}>
+          <Box sx={{ position: 'relative', paddingTop: '100%', width: '100%', overflow: 'hidden' }}>
             <CardMedia
-              component="div"
-              height="180"
-              sx={{
-                background: playlist.coverImageUrl 
-                  ? `url(${playlist.coverImageUrl})` 
-                  : 'linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899)',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
+              component="img"
+              image={playlist.coverUrl || defaultCoverImage}
+              alt={playlist.name}
+              onError={(e) => {
+                e.target.onerror = null; 
+                e.target.src = defaultCoverImage;
               }}
-            >
-              {!playlist.coverImageUrl && (
-                <QueueMusicIcon sx={{ fontSize: 60, color: 'white', opacity: 0.7 }} />
-              )}
-            </CardMedia>
-            
-            <IconButton 
-              sx={{ 
-                position: 'absolute', 
-                bottom: 8, 
-                right: 8,
-                background: 'rgba(0,0,0,0.6)',
-                '&:hover': { background: 'rgba(29, 185, 84, 0.8)' }
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePlayPlaylist(playlist);
-              }}
-            >
-              <PlayArrow />
-            </IconButton>
-
-            <Chip 
-              icon={<PublicIcon sx={{ fontSize: 14 }} />} 
-              label="Public" 
-              size="small"
               sx={{ 
                 position: 'absolute',
-                top: 8,
-                left: 8,
-                background: 'rgba(16, 185, 129, 0.8)',
-                color: 'white',
-                border: '1px solid rgba(16, 185, 129, 0.9)',
-                fontSize: '0.7rem',
-                height: 24
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center',
+                transition: 'transform 0.3s ease'
               }}
             />
+            <Box
+              sx={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                width: '100%',
+                background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
+                p: 1,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Typography variant="caption" sx={{ color: 'white' }}>
+                  {playlist.tracks?.length || playlist.trackCount || 0} songs
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>•</Typography>
+                <Typography variant="caption" sx={{ color: 'white' }}>
+                  {playlist.totalDuration ? `${Math.floor(playlist.totalDuration / 60)} min` : '0 min'}
+                </Typography>
+              </Box>
+              <IconButton 
+                size="small" 
+                sx={{ 
+                  backgroundColor: '#1db954',
+                  width: 32,
+                  height: 32,
+                  '&:hover': { backgroundColor: '#1ed760' }
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handlePlayPlaylist(playlist);
+                }}
+              >
+                <PlayArrow fontSize="small" sx={{ color: 'white' }} />
+              </IconButton>
+            </Box>
+            
+            {/* Public/Private indicator */}
+            <Box sx={{ position: 'absolute', top: 8, left: 8 }}>
+              <Chip
+                icon={<PublicIcon sx={{ fontSize: 12 }} />}
+                label="Public"
+                size="small"
+                sx={{ 
+                  backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                  color: 'white',
+                  fontSize: '0.7rem',
+                  height: 24
+                }}
+              />
+            </Box>
+            
+            {/* Like button */}
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleLikePlaylist(playlist);
+              }}
+              sx={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                backgroundColor: 'rgba(0,0,0,0.5)',
+                width: 32,
+                height: 32,
+                color: playlist.isLiked ? '#ec4899' : 'white',
+                '&:hover': { backgroundColor: 'rgba(0,0,0,0.7)' }
+              }}
+            >
+              {playlist.isLiked ? <Favorite fontSize="small" /> : <FavoriteBorder fontSize="small" />}
+            </IconButton>
           </Box>
           
-          <CardContent sx={{ flexGrow: 1 }}>
+          <CardContent sx={{ p: 1.5, height: '100px', maxHeight: '100px' }}>
             <Typography 
-              variant="h6" 
+              variant="subtitle1" 
               component="div" 
               sx={{ 
                 color: 'white',
-                fontWeight: 'bold',
-                textOverflow: 'ellipsis',
+                fontWeight: 600,
                 overflow: 'hidden',
-                whiteSpace: 'nowrap',
-                cursor: 'pointer',
-                '&:hover': {
-                  textDecoration: 'underline'
-                }
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(`/playlists/${playlist.id}`);
+                textOverflow: 'ellipsis',
+                display: '-webkit-box',
+                WebkitLineClamp: 1,
+                WebkitBoxOrient: 'vertical',
+                mb: 0.5
               }}
             >
               {playlist.name}
             </Typography>
             
-            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, mb: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
               <Avatar 
                 src={playlist.user?.avatarUrl} 
-                alt={playlist.user?.username || 'User'}
-                sx={{ width: 24, height: 24, mr: 1 }}
+                alt={playlist.createdBy || 'User'}
+                sx={{ width: 16, height: 16, mr: 0.5 }}
               />
               <Typography 
-                variant="body2" 
+                variant="caption" 
                 sx={{ 
-                  color: '#b3b3b3',
-                  textOverflow: 'ellipsis',
+                  color: 'rgba(255,255,255,0.9)',
                   overflow: 'hidden',
-                  whiteSpace: 'nowrap'
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  maxWidth: '80%'
                 }}
               >
-                {playlist.user?.username || 'User'}
+                {playlist.createdBy || 'User'}
               </Typography>
             </Box>
-
-            <Typography 
-              variant="caption" 
-              sx={{ 
-                display: 'block',
-                color: '#1db954',
-                mb: 1
-              }}
-            >
-              {playlist.tracks?.length || 0} tracks
-            </Typography>
+            
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+              <Typography 
+                variant="caption" 
+                sx={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.7rem' }}
+              >
+                {playlist.playCount || 0} plays 
+              </Typography>
+              
+              {playlist.description && (
+                <Tooltip title={playlist.description}>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      color: '#1db954',
+                      fontSize: '0.7rem',
+                      cursor: 'pointer',
+                      '&:hover': { textDecoration: 'underline' }
+                    }}
+                  >
+                    Description
+                  </Typography>
+                </Tooltip>
+              )}
+            </Box>
           </CardContent>
-          
-          <CardActions sx={{ justifyContent: 'flex-end', px: 2, pb: 2 }}>
-            <IconButton 
-              size="small" 
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSharePlaylist(playlist);
-              }}
-              sx={{ color: 'white' }}
-            >
-              <Share />
-            </IconButton>
-          </CardActions>
         </Card>
       </Grid>
     );

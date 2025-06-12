@@ -24,7 +24,8 @@ import {
   DialogActions,
   TextField,
   Switch,
-  FormControlLabel
+  FormControlLabel,
+  CardMedia
 } from '@mui/material';
 import {
   PlayArrow,
@@ -74,6 +75,9 @@ const PlaylistDetail = () => {
     description: '',
     isPublic: true
   });
+
+  // Default image for playlists and tracks
+  const defaultCoverImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjMUUxRTJFIi8+CjxwYXRoIGQ9Ik0xNTAgMTAwQzE3Mi4wOTEgMTAwIDE5MCA4Mi4wOTE0IDE5MCA2MEMxOTAgMzcuOTA4NiAxNzIuMDkxIDIwIDE1MCAyMEMxMjcuOTA5IDIwIDExMCAzNy45MDg2IDExMCA2MEMxMTAgODIuMDkxNCAxMjcuOTA5IDEwMCAxNTAgMTAwWiIgZmlsbD0iIzFEQjk1NCIvPgo8cGF0aCBkPSJNMjEwIDI4MEgyMDBDMjAwIDI1My40NzggMTg5LjQ2NCAyMjggMTcwLjcxMSAyMDkuMjg5QzE1MS45NTcgMTkwLjUzNiAxMjYuNTIyIDE4MCAxMDAgMThIODBDODAuMDAwMSAyMTkuMzMgOTEuMDcxNCAyNTcuNDg4IDExMS43MTcgMjg5SDgwVjI5MEg5MEg5NS44Mjg5QzEwNi41IDI5My4zMzMgMTE4LjUgMjk1IDEzMCAyOTVIMTcwQzE4MS41IDI5NSAxOTMuNSAyOTMuMzMzIDIwNC4xNzEgMjkwSDIxMFYyODBaIiBmaWxsPSIjMURCOTU0Ii8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTUwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjQjNCM0IzIiBmb250LXNpemU9IjE2IiBmb250LWZhbWlseT0iQXJpYWwiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4=';
 
   const fetchPlaylist = async () => {
     try {
@@ -214,26 +218,32 @@ const PlaylistDetail = () => {
       {/* Header Section */}
       <Box sx={{ mb: 4, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { md: 'flex-end' }, gap: 4 }}>
         {/* Playlist Cover */}
-        <Box 
-          sx={{ 
-            width: { xs: '100%', md: 300 }, 
-            height: { xs: 300, md: 300 },
-            borderRadius: 2,
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+        <Box sx={{ 
+          width: { xs: '100%', md: 300 }, 
+          height: { xs: 300, md: 300 },
+          borderRadius: 2,
+          overflow: 'hidden',
+          position: 'relative'
+        }}>
+          <Box sx={{ 
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
             background: playlist.coverImageUrl 
               ? `url(${playlist.coverImageUrl})` 
-              : 'linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899)',
+              : `url(${defaultCoverImage})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0
-          }}
-        >
-          {!playlist.coverImageUrl && (
-            <QueueMusicIcon sx={{ fontSize: 100, color: 'white', opacity: 0.7 }} />
-          )}
+            justifyContent: 'center'
+          }}>
+            {!playlist.coverImageUrl && !playlist.coverUrl && (
+              <QueueMusicIcon sx={{ fontSize: 60, color: 'white', opacity: 0.7 }} />
+            )}
+          </Box>
         </Box>
         
         {/* Playlist Info */}
@@ -488,8 +498,12 @@ const PlaylistDetail = () => {
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                           <Avatar 
                             variant="rounded"
-                            src={track.imageUrl || track.coverImageUrl} 
+                            src={track.imageUrl || track.coverImageUrl || defaultCoverImage} 
                             alt={track.title}
+                            onError={(e) => {
+                              e.target.onerror = null; 
+                              e.target.src = defaultCoverImage;
+                            }}
                             sx={{ width: 40, height: 40, mr: 2 }}
                           >
                             <MusicNoteIcon />

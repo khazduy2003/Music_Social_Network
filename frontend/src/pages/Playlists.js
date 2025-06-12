@@ -72,6 +72,9 @@ const Playlists = () => {
 
   const navigate = useNavigate();
 
+  // Default image for playlists
+  const defaultCoverImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjMUUxRTJFIi8+CjxwYXRoIGQ9Ik0xNTAgMTAwQzE3Mi4wOTEgMTAwIDE5MCA4Mi4wOTE0IDE5MCA2MEMxOTAgMzcuOTA4NiAxNzIuMDkxIDIwIDE1MCAyMEMxMjcuOTA5IDIwIDExMCAzNy45MDg2IDExMCA2MEMxMTAgODIuMDkxNCAxMjcuOTA5IDEwMCAxNTAgMTAwWiIgZmlsbD0iIzFEQjk1NCIvPgo8cGF0aCBkPSJNMjEwIDI4MEgyMDBDMjAwIDI1My40NzggMTg5LjQ2NCAyMjggMTcwLjcxMSAyMDkuMjg5QzE1MS45NTcgMTkwLjUzNiAxMjYuNTIyIDE4MCAxMDAgMThIODBDODAuMDAwMSAyMTkuMzMgOTEuMDcxNCAyNTcuNDg4IDExMS43MTcgMjg5SDgwVjI5MEg5MEg5NS44Mjg5QzEwNi41IDI5My4zMzMgMTE4LjUgMjk1IDEzMCAyOTVIMTcwQzE4MS41IDI5NSAxOTMuNSAyOTMuMzMzIDIwNC4xNzEgMjkwSDIxMFYyODBaIiBmaWxsPSIjMURCOTU0Ii8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTUwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjQjNCM0IzIiBmb250LXNpemU9IjE2IiBmb250LWZhbWlseT0iQXJpYWwiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4=';
+
   useEffect(() => {
     if (isAuthenticated && user) {
       fetchUserPlaylists();
@@ -82,8 +85,16 @@ const Playlists = () => {
     try {
       setLoading(true);
       const userPlaylists = await playlistService.getUserPlaylists(user.username);
-      console.log('Fetched user playlists:', userPlaylists);
-      setPlaylists(userPlaylists);
+      console.log('DEBUG - User playlists before fix:', userPlaylists);
+      
+      // Đảm bảo thuộc tính isPublic được hiển thị chính xác
+      const fixedPlaylists = userPlaylists.map(playlist => ({
+        ...playlist,
+        isPublic: playlist.isPublic === true // Chuyển đổi thành boolean rõ ràng
+      }));
+      
+      console.log('DEBUG - User playlists after fix:', fixedPlaylists);
+      setPlaylists(fixedPlaylists);
     } catch (error) {
       console.error('Error fetching playlists:', error);
     } finally {
@@ -224,53 +235,57 @@ const Playlists = () => {
     const isCurrentlyPlaying = currentPlaylist && currentPlaylist.id === playlist.id && isPlaying;
     const totalDuration = playlist.tracks?.reduce((total, track) => total + (track.duration || 0), 0) || 0;
     
-    console.log(`Rendering playlist: ${playlist.name}, isPublic:`, playlist.isPublic);
-    
     return (
-      <Grid item xs={12} sm={6} md={4} lg={3} key={playlist.id}>
+      <Grid item xs={6} sm={4} md={3} lg={2} key={playlist.id}>
         <Card 
           sx={{ 
+            height: '100%', 
+            width: '100%',
+            maxWidth: '240px',
+            minWidth: '240px',
+            margin: '0 auto',
+            backgroundColor: 'rgba(20, 20, 30, 0.8)',
             borderRadius: 2,
-            background: 'linear-gradient(145deg, #1e1e2e, #2a2a40)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            transition: 'transform 0.3s ease',
-            minWidth: '280px',
-            
-            cursor: 'pointer',
+            overflow: 'hidden',
+            transition: 'all 0.3s ease',
             '&:hover': {
               transform: 'translateY(-5px)',
-              boxShadow: '0 12px 40px rgba(0, 0, 0, 0.3)',
+              boxShadow: '0 12px 20px rgba(0,0,0,0.3)',
+              '& .MuiCardMedia-root': {
+                transform: 'scale(1.05)'
+              },
               '& .play-button': {
                 opacity: 1,
                 visibility: 'visible'
               }
-            }
+            },
+            cursor: 'pointer'
           }}
           onClick={() => navigate(`/playlists/${playlist.id}`)}
         >
-          <Box sx={{ position: 'relative' }}>
+          <Box sx={{ position: 'relative', paddingTop: '100%', width: '100%', overflow: 'hidden' }}>
             <CardMedia
-              component="div"
-              height="200"
-              sx={{
-                background: playlist.coverImageUrl 
-                  ? `url(${playlist.coverImageUrl})` 
-                  : 'linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899)',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
+              component="img"
+              image={playlist.coverUrl || defaultCoverImage}
+              alt={playlist.name}
+              onError={(e) => {
+                e.target.onerror = null; 
+                e.target.src = defaultCoverImage;
               }}
-            >
-              {!playlist.coverImageUrl && (
-                <QueueMusicIcon sx={{ fontSize: 60, color: 'white', opacity: 0.7 }} />
-              )}
-            </CardMedia>
+              className="MuiCardMedia-root"
+              sx={{ 
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center',
+                transition: 'transform 0.3s ease'
+              }}
+            />
             
+            {/* Play button overlay */}
             <IconButton 
               className="play-button"
               sx={{ 
@@ -280,8 +295,8 @@ const Playlists = () => {
                 transform: 'translate(-50%, -50%)',
                 background: 'rgba(0,0,0,0.8)',
                 backdropFilter: 'blur(10px)',
-                width: 56,
-                height: 56,
+                width: 48,
+                height: 48,
                 opacity: 0,
                 visibility: 'hidden',
                 transition: 'all 0.3s ease',
@@ -295,19 +310,20 @@ const Playlists = () => {
                 handlePlayPlaylist(playlist);
               }}
             >
-              {isCurrentlyPlaying ? <PauseIcon sx={{ fontSize: 28 }} /> : <PlayIcon sx={{ fontSize: 28 }} />}
+              {isCurrentlyPlaying ? <PauseIcon fontSize="small" /> : <PlayIcon fontSize="small" />}
             </IconButton>
-
+            
+            {/* Options menu button */}
             <IconButton
               sx={{
                 position: 'absolute',
-                top: 12,
-                right: 12,
+                top: 8,
+                right: 8,
                 background: 'rgba(0,0,0,0.7)',
                 backdropFilter: 'blur(10px)',
                 color: 'white',
-                width: 36,
-                height: 36,
+                width: 32,
+                height: 32,
                 '&:hover': { 
                   background: 'rgba(0,0,0,0.9)',
                   transform: 'scale(1.1)'
@@ -318,104 +334,97 @@ const Playlists = () => {
                 handleMenuOpen(e, playlist);
               }}
             >
-              <MoreVertIcon sx={{ fontSize: 20 }} />
+              <MoreVertIcon fontSize="small" />
             </IconButton>
-
-            <Box sx={{
-              position: 'absolute',
-              bottom: 12,
-              left: 12,
-              display: 'flex',
-              gap: 1
-            }}>
-              {playlist.isPublic ? (
-                <Chip 
-                  icon={<PublicIcon sx={{ fontSize: 14 }} />} 
-                  label="Public" 
-                  size="small"
-                  sx={{ 
-                    background: 'rgba(16, 185, 129, 0.8)',
-                    color: 'white',
-                    border: '1px solid rgba(16, 185, 129, 0.9)',
-                    fontSize: '0.7rem',
-                    height: 24
-                  }}
-                />
-              ) : (
-                <Chip 
-                  icon={<PrivateIcon sx={{ fontSize: 14 }} />} 
-                  label="Private" 
-                  size="small"
-                  sx={{ 
-                    background: 'rgba(156, 163, 175, 0.8)',
-                    color: 'white',
-                    border: '1px solid rgba(156, 163, 175, 0.9)',
-                    fontSize: '0.7rem',
-                    height: 24
-                  }}
-                />
-              )}
+            
+            
+            
+            <Box
+              sx={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                width: '100%',
+                background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
+                p: 1,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Typography variant="caption" sx={{ color: 'white' }}>
+                  {playlist.tracks?.length || playlist.trackCount || 0} songs
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>•</Typography>
+                <Typography variant="caption" sx={{ color: 'white' }}>
+                  {formatDuration(totalDuration)}
+                </Typography>
+              </Box>
             </Box>
           </Box>
           
-          <CardContent sx={{ flexGrow: 1, pb: 2, px: 2 }}>
+          <CardContent sx={{ p: 1.5, height: '100px', maxHeight: '100px' }}>
             <Typography 
-              variant="h6" 
+              variant="subtitle1" 
               component="div" 
               sx={{ 
                 color: 'white',
-                fontWeight: 'bold',
-                textOverflow: 'ellipsis',
+                fontWeight: 600,
                 overflow: 'hidden',
-                whiteSpace: 'nowrap',
-                mb: 1,
-                fontSize: '1.1rem'
+                textOverflow: 'ellipsis',
+                display: '-webkit-box',
+                WebkitLineClamp: 1,
+                WebkitBoxOrient: 'vertical',
+                mb: 0.5
               }}
             >
               {playlist.name}
             </Typography>
             
-            {playlist.description && (
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+              <Avatar 
+                src={playlist.user?.avatarUrl} 
+                alt={playlist.createdBy || 'User'}
+                sx={{ width: 16, height: 16, mr: 0.5 }}
+              />
               <Typography 
-                variant="body2" 
+                variant="caption" 
                 sx={{ 
-                  color: '#b3b3b3',
-                  mb: 2,
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
+                  color: 'rgba(255,255,255,0.9)',
                   overflow: 'hidden',
-                  lineHeight: 1.4
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  maxWidth: '80%'
                 }}
               >
-                {playlist.description}
-              </Typography>
-            )}
-
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-              <Typography variant="body2" sx={{ color: '#8b5cf6', fontWeight: 500 }}>
-                {playlist.tracks?.length || 0} tracks
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#b3b3b3' }}>
-                {formatDuration(totalDuration)}
+                {playlist.createdBy || user?.username || 'You'}
               </Typography>
             </Box>
-
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Avatar 
-                  src={playlist.user?.avatarUrl} 
-                  alt={playlist.user?.username}
-                  sx={{ width: 24, height: 24 }}
-                />
-                <Typography variant="caption" sx={{ color: '#b3b3b3' }}>
-                  {playlist.user?.username}
-                </Typography>
-              </Box>
-              
-              <Typography variant="caption" sx={{ color: '#6b7280' }}>
-                {playlist.playCount || 0} plays
+            
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+              <Typography 
+                variant="caption" 
+                sx={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.7rem' }}
+              >
+                {playlist.playCount || 0} plays 
               </Typography>
+              
+              {playlist.description && (
+                <Tooltip title={playlist.description}>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      color: '#1db954',
+                      fontSize: '0.7rem',
+                      cursor: 'pointer',
+                      '&:hover': { textDecoration: 'underline' }
+                    }}
+                  >
+                    Description
+                  </Typography>
+                </Tooltip>
+              )}
             </Box>
           </CardContent>
         </Card>
@@ -674,33 +683,7 @@ const Playlists = () => {
             sx={{ mb: 2 }}
           />
           <Box sx={{ mt: 1, mb: 1 }}>
-            <Typography variant="body2" sx={{ color: '#b3b3b3' }}>
-              Status: {playlistForm.isPublic ? (
-                <Chip 
-                  icon={<PublicIcon sx={{ fontSize: 14 }} />} 
-                  label="Public" 
-                  size="small"
-                  sx={{ 
-                    background: 'rgba(16, 185, 129, 0.8)',
-                    color: 'white',
-                    fontSize: '0.7rem',
-                    ml: 1
-                  }}
-                />
-              ) : (
-                <Chip 
-                  icon={<PrivateIcon sx={{ fontSize: 14 }} />} 
-                  label="Private" 
-                  size="small"
-                  sx={{ 
-                    background: 'rgba(156, 163, 175, 0.8)',
-                    color: 'white',
-                    fontSize: '0.7rem',
-                    ml: 1
-                  }}
-                />
-              )}
-            </Typography>
+            
             <Typography variant="caption" sx={{ display: 'block', color: '#6b7280', mt: 1 }}>
               The public/private status can only be set when creating a playlist.
             </Typography>

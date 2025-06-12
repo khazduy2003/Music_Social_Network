@@ -86,7 +86,7 @@ const TrackCard = ({ track, showArtist = true }) => {
 
   // Chuyển đến trang chi tiết
   const handleCardClick = () => {
-    navigate(`/track/${track.id}`);
+    navigate(`/tracks/${track.id}`);
   };
 
   const handleShare = (event) => {
@@ -98,6 +98,8 @@ const TrackCard = ({ track, showArtist = true }) => {
     setShareModalOpen(true);
   };
 
+  const defaultCoverImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjMUUxRTJFIi8+CjxwYXRoIGQ9Ik0xNTAgMTAwQzE3Mi4wOTEgMTAwIDE5MCA4Mi4wOTE0IDE5MCA2MEMxOTAgMzcuOTA4NiAxNzIuMDkxIDIwIDE1MCAyMEMxMjcuOTA5IDIwIDExMCAzNy45MDg2IDExMCA2MEMxMTAgODIuMDkxNCAxMjcuOTA5IDEwMCAxNTAgMTAwWiIgZmlsbD0iIzFEQjk1NCIvPgo8cGF0aCBkPSJNMjEwIDI4MEgyMDBDMjAwIDI1My40NzggMTg5LjQ2NCAyMjggMTcwLjcxMSAyMDkuMjg5QzE1MS45NTcgMTkwLjUzNiAxMjYuNTIyIDE4MCAxMDAgMThIODBDODAuMDAwMSAyMTkuMzMgOTEuMDcxNCAyNTcuNDg4IDExMS43MTcgMjg5SDgwVjI5MEg5MEg5NS44Mjg5QzEwNi41IDI5My4zMzMgMTE4LjUgMjk1IDEzMCAyOTVIMTcwQzE4MS41IDI5NSAxOTMuNSAyOTMuMzMzIDIwNC4xNzEgMjkwSDIxMFYyODBaIiBmaWxsPSIjMURCOTU0Ii8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTUwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjQjNCM0IzIiBmb250LXNpemU9IjE2IiBmb250LWZhbWlseT0iQXJpYWwiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4=';
+
   return (
     <>
       <Card 
@@ -105,6 +107,10 @@ const TrackCard = ({ track, showArtist = true }) => {
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
+          width: '100%',
+          maxWidth: '240px', // Fixed width
+          minWidth: '240px', // Added minimum width to maintain consistency
+          margin: '0 auto', // Center the card
           backgroundColor: 'rgba(20, 20, 30, 0.8)',
           borderRadius: 2,
           overflow: 'hidden',
@@ -126,11 +132,15 @@ const TrackCard = ({ track, showArtist = true }) => {
         onClick={handleCardClick}
       >
         {/* Cover Image */}
-        <Box sx={{ position: 'relative', paddingTop: '100%', width: '100%' }}>
+        <Box sx={{ position: 'relative', paddingTop: '100%', width: '100%', overflow: 'hidden' }}>
           <CardMedia
             component="img"
-            image={track.imageUrl || track.coverImageUrl || track.coverUrl || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjMUUxRTJFIi8+CjxwYXRoIGQ9Ik0xNTAgMTAwQzE3Mi4wOTEgMTAwIDE5MCA4Mi4wOTE0IDE5MCA2MEMxOTAgMzcuOTA4NiAxNzIuMDkxIDIwIDE1MCAyMEMxMjcuOTA5IDIwIDExMCAzNy45MDg2IDExMCA2MEMxMTAgODIuMDkxNCAxMjcuOTA5IDEwMCAxNTAgMTAwWiIgZmlsbD0iIzFEQjk1NCIvPgo8cGF0aCBkPSJNMjEwIDI4MEgyMDBDMjAwIDI1My40NzggMTg5LjQ2NCAyMjggMTcwLjcxMSAyMDkuMjg5QzE1MS45NTcgMTkwLjUzNiAxMjYuNTIyIDE4MCAxMDAgMThIODBDODAuMDAwMSAyMTkuMzMgOTEuMDcxNCAyNTcuNDg4IDExMS43MTcgMjg5SDgwVjI5MEg5MEg5NS44Mjg5QzEwNi41IDI5My4zMzMgMTE4LjUgMjk1IDEzMCAyOTVIMTcwQzE4MS41IDI5NSAxOTMuNSAyOTMuMzMzIDIwNC4xNzEgMjkwSDIxMFYyODBaIiBmaWxsPSIjMURCOTU0Ii8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTUwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjQjNCM0IzIiBmb250LXNpemU9IjE2IiBmb250LWZhbWlseT0iQXJpYWwiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4='}
+            image={track.imageUrl || track.coverImageUrl || track.coverUrl || defaultCoverImage}
             alt={track.title}
+            onError={(e) => {
+              e.target.onerror = null; 
+              e.target.src = defaultCoverImage;
+            }}
             sx={{
               position: 'absolute',
               top: 0,
@@ -138,6 +148,7 @@ const TrackCard = ({ track, showArtist = true }) => {
               width: '100%',
               height: '100%',
               objectFit: 'cover',
+              objectPosition: 'center', // Center the image
               transition: 'transform 0.3s ease'
             }}
           />
@@ -169,14 +180,14 @@ const TrackCard = ({ track, showArtist = true }) => {
                   transform: 'scale(1.1)'
                 },
                 transition: 'all 0.2s ease',
-                width: 56,
-                height: 56
+                width: 48, // Slightly smaller
+                height: 48 // Slightly smaller
               }}
             >
               {isCurrentTrack && isPlaying ? (
-                <Pause sx={{ color: 'white', fontSize: 28 }} />
+                <Pause sx={{ color: 'white', fontSize: 24 }} />
               ) : (
-                <PlayArrow sx={{ color: 'white', fontSize: 28 }} />
+                <PlayArrow sx={{ color: 'white', fontSize: 24 }} />
               )}
             </IconButton>
           </Box>
@@ -187,7 +198,9 @@ const TrackCard = ({ track, showArtist = true }) => {
           flexGrow: 1, 
           display: 'flex', 
           flexDirection: 'column',
-          p: 2
+          p: 1.5, // Reduce padding
+          height: '100px', // Reduced height
+          maxHeight: '100px'
         }}>
           <Box sx={{ 
             display: 'flex', 
@@ -196,7 +209,7 @@ const TrackCard = ({ track, showArtist = true }) => {
             mb: 0.5
           }}>
             <Typography 
-              variant="h6" 
+              variant="subtitle1" // Smaller font size
               component="div" 
               onClick={handleCardClick}
               sx={{ 
@@ -209,6 +222,7 @@ const TrackCard = ({ track, showArtist = true }) => {
                 WebkitBoxOrient: 'vertical',
                 lineHeight: 1.2,
                 cursor: 'pointer',
+                width: '85%', // Leave space for the menu button
                 '&:hover': {
                   textDecoration: 'underline'
                 }
@@ -223,10 +237,11 @@ const TrackCard = ({ track, showArtist = true }) => {
                 onClick={handleMenuOpen}
                 sx={{ 
                   color: 'rgba(255,255,255,0.7)',
-                  '&:hover': { color: 'white' }
+                  '&:hover': { color: 'white' },
+                  padding: 0.5 // Smaller padding
                 }}
               >
-                <MoreVert />
+                <MoreVert fontSize="small" />
               </IconButton>
             </Tooltip>
             
@@ -284,6 +299,7 @@ const TrackCard = ({ track, showArtist = true }) => {
                 WebkitLineClamp: 1,
                 WebkitBoxOrient: 'vertical',
                 cursor: 'pointer',
+                fontSize: '0.8rem', // Smaller font size
                 '&:hover': { color: '#1db954' }
               }}
               onClick={(e) => {
