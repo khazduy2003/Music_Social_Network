@@ -31,4 +31,28 @@ public interface RecommendationService {
      * @return list of recommended tracks by same genres
      */
     List<TrackDTO> getRecommendationsByGenre(Long userId, int limit);
+    
+    /**
+     * Get tracks with similar artists based on user's listening history (duration > 30s)
+     * @param userId the user ID
+     * @param limit maximum number of recommendations
+     * @return list of tracks from same artists user has listened to for more than 30s
+     */
+    List<TrackDTO> getSimilarArtistTracks(Long userId, int limit);
+    
+    /**
+     * Get tracks with similar genres based on user's listening history (duration > 30s)
+     * @param userId the user ID
+     * @param limit maximum number of recommendations
+     * @return list of tracks from same genres user has listened to for more than 30s
+     */
+    List<TrackDTO> getSimilarGenreTracks(Long userId, int limit);
+    
+    /**
+     * Get tracks liked by users that the current user is following
+     * @param userId the user ID
+     * @param limit maximum number of recommendations
+     * @return list of tracks liked by following users
+     */
+    List<TrackDTO> getFollowingLikedTracks(Long userId, int limit);
 } 

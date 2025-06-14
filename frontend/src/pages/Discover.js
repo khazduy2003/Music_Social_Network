@@ -66,7 +66,6 @@ const SORT_OPTIONS = [
   { value: 'latest', label: 'Newest First' },
   { value: 'oldest', label: 'Oldest First' },
   { value: 'popular', label: 'Most Popular' },
-  { value: 'rating', label: 'Highest Rated' },
   { value: 'title', label: 'Title (A-Z)' },
   { value: 'title_desc', label: 'Title (Z-A)' }
 ];
@@ -131,18 +130,16 @@ const Discover = () => {
         const userId = JSON.parse(localStorage.getItem('user'))?.id;
         
         switch(currentTab) {
-          case 0: // All Tracks - Gộp top rated, most played và tất cả tracks
+          case 0: // All Tracks - Gộp most played và tất cả tracks
             try {
-              // Gọi đồng thời 3 API
-              const [topTracksResponse, mostPlayedResponse, allTracksResponse] = await Promise.all([
-                trackService.getTopTracks(),
+              // Gọi đồng thời 2 API (removed top rated)
+              const [mostPlayedResponse, allTracksResponse] = await Promise.all([
                 trackService.getMostPlayedTracks(),
                 trackService.getAllTracksForDiscover()
               ]);
 
-              // Gộp 3 danh sách
+              // Gộp 2 danh sách
               const allTracksList = [
-                ...(topTracksResponse || []),
                 ...(mostPlayedResponse || []),
                 ...(allTracksResponse || [])
               ];
@@ -154,7 +151,7 @@ const Discover = () => {
 
               // Sắp xếp theo title từ A-Z
               const sortedTracks = uniqueTracks.sort((a, b) => 
-                a.title.toLowerCase().localeCompare(b.title.toLowerCase())
+                (a.title || '').toLowerCase().localeCompare((b.title || '').toLowerCase())
               );
 
               setTracks(sortedTracks);
@@ -167,10 +164,7 @@ const Discover = () => {
               response = await trackService.getAllTracksForDiscover();
             }
             break;
-          case 1: // Top Rated
-            response = await trackService.getTopTracks();
-            break;
-          case 2: // Most Played
+          case 1: // Most Played - 50 tracks from database
             response = await trackService.getMostPlayedTracks();
             break;
           default:
@@ -198,58 +192,190 @@ const Discover = () => {
         setLoading(false);
       }
     };
-    
-    // Only fetch if there's no active search/filter
-    if (!searchQuery.trim() && selectedGenres.length === 0 && minRating === 0 && !artistFilter) {
-      fetchTracks();
-    }
-  }, [currentTab, searchQuery, selectedGenres, minRating, artistFilter]);
+
+    fetchTracks();
+  }, [currentTab]);
   
-  // Xử lý tìm kiếm và lọc
+  // Apply search and filters
   const applySearch = async () => {
-    if (!searchQuery.trim() && selectedGenres.length === 0 && minRating === 0 && !artistFilter) {
-      return;
-    }
-    
     try {
       setLoading(true);
       
-      // Lấy userId từ localStorage để truyền vào API calls
+      // Lấy userId từ localStorage
       const userId = JSON.parse(localStorage.getItem('user'))?.id;
       
-      // Xây dựng đối tượng filter
-      const filters = {
-        genre: selectedGenres.length > 0 ? selectedGenres.join(',') : undefined,
-        minRating: minRating > 0 ? minRating : undefined,
-        artist: artistFilter || undefined,
-        sortBy: sortOption?.value?.split('_')[0] || undefined,
-        sortDirection: sortOption?.value?.includes('_desc') ? 'desc' : 'asc',
-        page: page - 1,
-        size: ITEMS_PER_PAGE
-      };
-      
-      console.log('Applying search with query:', searchQuery, 'and filters:', filters);
-      
-      const response = await trackService.searchTracks(searchQuery, filters);
-      console.log('Search results:', response);
-      
-      if (response && Array.isArray(response)) {
-        console.log(`Received ${response.length} tracks as array`);
-        setTracks(response);
-        setTotalPages(Math.ceil(response.length / ITEMS_PER_PAGE));
-      } else if (response && response.content) {
-        console.log(`Received ${response.content.length} tracks in content property`);
-        setTracks(response.content);
-        setTotalPages(response.totalPages || Math.ceil(response.content.length / ITEMS_PER_PAGE));
-      } else {
-        console.log('No tracks found or invalid response format');
-        setTracks([]);
-        setTotalPages(1);
+      // Nếu không có filter nào, fetch lại tracks theo tab hiện tại
+      if (!searchQuery && selectedGenres.length === 0 && minRating === 0 && !artistFilter) {
+        const fetchTracks = async () => {
+          let response;
+          
+          switch(currentTab) {
+            case 0: // All Tracks
+              try {
+                // Gọi đồng thời 2 API (removed top rated)
+                const [mostPlayedResponse, allTracksResponse] = await Promise.all([
+                  trackService.getMostPlayedTracks(),
+                  trackService.getAllTracksForDiscover()
+                ]);
+
+                // Gộp 2 danh sách
+                const allTracksList = [
+                  ...(mostPlayedResponse || []),
+                  ...(allTracksResponse || [])
+                ];
+
+                // Loại bỏ duplicate dựa trên ID
+                const uniqueTracks = allTracksList.filter((track, index, self) => 
+                  index === self.findIndex(t => t.id === track.id)
+                );
+
+                // Sắp xếp theo title từ A-Z
+                const sortedTracks = uniqueTracks.sort((a, b) => 
+                  (a.title || '').toLowerCase().localeCompare((b.title || '').toLowerCase())
+                );
+
+                setTracks(sortedTracks);
+                setTotalPages(Math.ceil(sortedTracks.length / ITEMS_PER_PAGE));
+                setLoading(false);
+                return;
+              } catch (error) {
+                console.error('Error fetching combined tracks:', error);
+                response = await trackService.getAllTracksForDiscover();
+              }
+              break;
+            case 1: // Most Played
+              response = await trackService.getMostPlayedTracks();
+              break;
+            default:
+              response = await trackService.getAllTracks();
+          }
+          
+          if (response && Array.isArray(response)) {
+            setTracks(response);
+            setTotalPages(Math.ceil(response.length / ITEMS_PER_PAGE));
+          } else if (response && response.content) {
+            setTracks(response.content);
+            setTotalPages(response.totalPages || Math.ceil(response.content.length / ITEMS_PER_PAGE));
+          } else {
+            setTracks([]);
+            setTotalPages(1);
+          }
+          
+          setLoading(false);
+        };
+        
+        await fetchTracks();
+        return;
       }
-    } catch (err) {
-      console.error('Error searching tracks:', err);
-      setError('Search failed. Please try again.');
-    } finally {
+      
+      // Nếu có filter, lấy tất cả tracks để filter
+      let allTracks = [];
+      
+      switch(currentTab) {
+        case 0: // All Tracks
+          try {
+            // Gọi đồng thời 2 API (removed top rated)
+            const [mostPlayedResponse, allTracksResponse] = await Promise.all([
+              trackService.getMostPlayedTracks(),
+              trackService.getAllTracksForDiscover()
+            ]);
+
+            // Gộp 2 danh sách
+            const allTracksList = [
+              ...(mostPlayedResponse || []),
+              ...(allTracksResponse || [])
+            ];
+
+            // Loại bỏ duplicate dựa trên ID
+            allTracks = allTracksList.filter((track, index, self) => 
+              index === self.findIndex(t => t.id === track.id)
+            );
+          } catch (error) {
+            console.error('Error fetching combined tracks:', error);
+            const response = await trackService.getAllTracksForDiscover();
+            allTracks = response || [];
+          }
+          break;
+        case 1: // Most Played
+          const response = await trackService.getMostPlayedTracks();
+          allTracks = response || [];
+          break;
+        default:
+          const defaultResponse = await trackService.getAllTracks();
+          allTracks = defaultResponse?.content || [];
+      }
+      
+      // Apply filters
+      let filteredTracks = allTracks;
+      
+      // Search filter
+      if (searchQuery) {
+        filteredTracks = filteredTracks.filter(track =>
+          (track.title && track.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+          (track.artist && track.artist.toLowerCase().includes(searchQuery.toLowerCase())) ||
+          (track.album && track.album.toLowerCase().includes(searchQuery.toLowerCase())) ||
+          (track.genre && track.genre.toLowerCase().includes(searchQuery.toLowerCase()))
+        );
+      }
+      
+      // Genre filter
+      if (selectedGenres.length > 0) {
+        filteredTracks = filteredTracks.filter(track =>
+          track.genre && selectedGenres.some(genre => 
+            track.genre.toLowerCase().includes(genre.toLowerCase())
+          )
+        );
+      }
+      
+      // Rating filter
+      if (minRating > 0) {
+        filteredTracks = filteredTracks.filter(track =>
+          (track.rating || 0) >= minRating
+        );
+      }
+      
+      // Artist filter
+      if (artistFilter) {
+        filteredTracks = filteredTracks.filter(track =>
+          track.artist && track.artist.toLowerCase().includes(artistFilter.toLowerCase())
+        );
+      }
+      
+      // Apply sorting
+      switch(sortOption.value) {
+        case 'latest':
+          filteredTracks.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+          break;
+        case 'oldest':
+          filteredTracks.sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
+          break;
+        case 'popular':
+          filteredTracks.sort((a, b) => (b.playCount || 0) - (a.playCount || 0));
+          break;
+        case 'rating':
+          filteredTracks.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+          break;
+        case 'title':
+          filteredTracks.sort((a, b) => (a.title || '').toLowerCase().localeCompare((b.title || '').toLowerCase()));
+          break;
+        case 'title_desc':
+          filteredTracks.sort((a, b) => (b.title || '').toLowerCase().localeCompare((a.title || '').toLowerCase()));
+          break;
+        default:
+          // For Most Played tab, always sort by playCount DESC if no specific sort is selected
+          if (currentTab === 1) {
+            filteredTracks.sort((a, b) => (b.playCount || 0) - (a.playCount || 0));
+          }
+          break;
+      }
+      
+      setTracks(filteredTracks);
+      setTotalPages(Math.ceil(filteredTracks.length / ITEMS_PER_PAGE));
+      setPage(1); // Reset to first page
+      setLoading(false);
+    } catch (error) {
+      console.error('Error applying search/filters:', error);
+      setError('Failed to apply filters. Please try again.');
       setLoading(false);
     }
   };
@@ -278,18 +404,16 @@ const Discover = () => {
               const userId = JSON.parse(localStorage.getItem('user'))?.id;
               
               switch(currentTab) {
-                case 0: // All Tracks - Gộp top rated, most played và tất cả tracks
+                case 0: // All Tracks - Gộp most played và tất cả tracks
                   try {
-                    // Gọi đồng thời 3 API
-                    const [topTracksResponse, mostPlayedResponse, allTracksResponse] = await Promise.all([
-                      trackService.getTopTracks(),
+                    // Gọi đồng thời 2 API (removed top rated)
+                    const [mostPlayedResponse, allTracksResponse] = await Promise.all([
                       trackService.getMostPlayedTracks(),
                       trackService.getAllTracksForDiscover()
                     ]);
 
-                    // Gộp 3 danh sách
+                    // Gộp 2 danh sách
                     const allTracksList = [
-                      ...(topTracksResponse || []),
                       ...(mostPlayedResponse || []),
                       ...(allTracksResponse || [])
                     ];
@@ -301,23 +425,19 @@ const Discover = () => {
 
                     // Sắp xếp theo title từ A-Z
                     const sortedTracks = uniqueTracks.sort((a, b) => 
-                      a.title.toLowerCase().localeCompare(b.title.toLowerCase())
+                      (a.title || '').toLowerCase().localeCompare((b.title || '').toLowerCase())
                     );
 
                     setTracks(sortedTracks);
                     setTotalPages(Math.ceil(sortedTracks.length / ITEMS_PER_PAGE));
                     setLoading(false);
-                    return; // Return early để không chạy code bên dưới
+                    return;
                   } catch (error) {
                     console.error('Error fetching combined tracks:', error);
-                    // Fallback to just all tracks if there's an error
                     response = await trackService.getAllTracksForDiscover();
                   }
                   break;
-                case 1: // Top Rated
-                  response = await trackService.getTopTracks();
-                  break;
-                case 2: // Most Played
+                case 1: // Most Played
                   response = await trackService.getMostPlayedTracks();
                   break;
                 default:
@@ -591,13 +711,7 @@ const Discover = () => {
               >
                 {track.isLiked ? <Favorite /> : <FavoriteBorder />}
               </IconButton>
-              <IconButton 
-                size="small" 
-                onClick={() => handleAddToPlaylist(track)}
-                sx={{ color: 'white' }}
-              >
-                <Add />
-              </IconButton>
+              
               <IconButton 
                 size="small" 
                 onClick={() => handleAddToQueue(track)}
@@ -954,32 +1068,6 @@ const Discover = () => {
               }}
             />
           </Box>
-          
-          {/* Rating Filter */}
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle1" sx={{ mb: 1 }}>Minimum Rating</Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Slider
-                value={minRating}
-                onChange={(e, newValue) => setMinRating(newValue)}
-                min={0}
-                max={5}
-                step={0.5}
-                valueLabelDisplay="auto"
-                sx={{
-                  color: '#1db954',
-                  '& .MuiSlider-thumb': {
-                    '&:hover, &.Mui-focusVisible': {
-                      boxShadow: '0px 0px 0px 8px rgba(29, 185, 84, 0.16)'
-                    }
-                  }
-                }}
-              />
-              <Typography variant="body1" sx={{ minWidth: 40 }}>
-                {minRating > 0 ? `${minRating}⭐` : 'Any'}
-              </Typography>
-            </Box>
-          </Box>
         </DialogContent>
         
         <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
@@ -1019,8 +1107,7 @@ const Discover = () => {
         }}
       >
         <Tab label="All Tracks" />
-        <Tab label="Top Rated" />
-        <Tab label="Most Played" />
+        <Tab label="Most Played (Top 50)" />
       </Tabs>
       
       {error && (

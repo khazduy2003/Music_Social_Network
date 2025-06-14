@@ -35,7 +35,7 @@ import { usePlayerContext } from '../contexts/PlayerContext';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
 import ShareModal from '../components/ShareModal';
-import TrackComments from '../components/TrackComments';
+//import TrackComments from '../components/TrackComments';
 
 const TrackDetail = () => {
   const { id } = useParams();
@@ -321,16 +321,7 @@ const TrackDetail = () => {
                 <QueueMusic />
               </IconButton>
               
-              <IconButton 
-                onClick={handleAddToPlaylist}
-                sx={{ 
-                  color: 'white',
-                  bgcolor: 'rgba(255,255,255,0.1)',
-                  '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' }
-                }}
-              >
-                <PlaylistAdd />
-              </IconButton>
+              
               
               <IconButton 
                 onClick={handleShare}
@@ -390,24 +381,6 @@ const TrackDetail = () => {
                 </Box>
               </Grid>
             </Grid>
-            
-            {/* Additional stats */}
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-              {track.playCount !== undefined && (
-                <Chip 
-                  label={`${track.playCount} total plays`} 
-                  sx={{ 
-                    bgcolor: 'rgba(255,255,255,0.1)', 
-                    color: 'white',
-                    cursor: 'default',
-                    '&:hover': {
-                      bgcolor: 'rgba(255,255,255,0.1)'
-                    }
-                  }} 
-                  clickable={false}
-                />
-              )}
-            </Box>
           </Box>
         </Grid>
       </Grid>

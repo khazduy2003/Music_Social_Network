@@ -121,4 +121,10 @@ public interface ListeningHistoryRepository extends JpaRepository<ListeningHisto
     // Admin query for total listening time
     @Query("SELECT COALESCE(SUM(lh.duration), 0) FROM ListeningHistory lh WHERE lh.user.id = :userId")
     Long getTotalListeningTimeByUserId(@Param("userId") Long userId);
+    
+    /**
+     * Get total play count for a specific track from all users in listening history
+     */
+    @Query("SELECT COUNT(lh) FROM ListeningHistory lh WHERE lh.track.id = :trackId")
+    Long getTotalPlayCountByTrackId(@Param("trackId") Long trackId);
 } 

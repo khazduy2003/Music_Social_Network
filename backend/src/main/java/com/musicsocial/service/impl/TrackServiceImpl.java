@@ -9,6 +9,7 @@ import com.musicsocial.exception.ResourceNotFoundException;
 import com.musicsocial.mapper.TrackMapper;
 import com.musicsocial.repository.TrackRepository;
 import com.musicsocial.repository.UserRepository;
+import com.musicsocial.repository.ListeningHistoryRepository;
 import com.musicsocial.service.TrackService;
 import com.musicsocial.service.FileStorageService;
 import com.musicsocial.service.ListeningHistoryService;
@@ -37,6 +38,7 @@ public class TrackServiceImpl implements TrackService {
     private final UserRepository userRepository;
     private final TrackMapper trackMapper;
     private final ListeningHistoryService listeningHistoryService;
+    private final ListeningHistoryRepository listeningHistoryRepository;
     private final FileStorageService fileStorageService;
     private final NotificationService notificationService;
 
@@ -323,5 +325,11 @@ public class TrackServiceImpl implements TrackService {
         return allTracks.stream()
                 .map(track -> trackMapper.toDTO(track, userId))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Long getTotalPlayCountFromHistory(Long trackId) {
+        return listeningHistoryRepository.getTotalPlayCountByTrackId(trackId);
     }
 } 

@@ -6,6 +6,7 @@ import com.musicsocial.repository.ListeningHistoryRepository;
 import com.musicsocial.repository.TrackRepository;
 import com.musicsocial.repository.UserPreferenceRepository;
 import com.musicsocial.service.RecommendationService;
+import com.musicsocial.service.TrackService;
 import com.musicsocial.service.UserPreferenceService;
 import com.musicsocial.domain.Track;
 import com.musicsocial.domain.UserPreference;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +32,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final TrackMapper trackMapper;
     private final UserPreferenceRepository userPreferenceRepository;
     private final UserPreferenceService userPreferenceService;
+    private final TrackService trackService;
     
     private static final int MIN_LISTENING_DURATION = 30; // seconds
 
@@ -252,6 +255,129 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
     }
     
+    @Override
+    @Transactional(readOnly = true)
+    public List<TrackDTO> getSimilarArtistTracks(Long userId, int limit) {
+        log.info("Getting similar artist tracks for user: {} with limit: {}", userId, limit);
+        
+        try {
+            // 1. Get artists from user's listening history with duration > 30s
+            List<String> listenedArtists = listeningHistoryRepository
+                    .findDistinctArtistsByUserIdAndMinDuration(userId, MIN_LISTENING_DURATION);
+            
+            if (listenedArtists.isEmpty()) {
+                log.info("No artists found in listening history for user: {}", userId);
+                return Collections.emptyList();
+            }
+            
+            log.info("Found {} artists from listening history for user: {}: {}", 
+                    listenedArtists.size(), userId, listenedArtists);
+            
+            // 2. Get all tracks from these artists
+            List<TrackDTO> recommendations = new ArrayList<>();
+            
+            for (String artist : listenedArtists) {
+                List<TrackDTO> artistTracks = trackRepository
+                        .findByArtistIgnoreCase(artist)
+                        .stream()
+                        .map(track -> trackMapper.toDTO(track, userId))
+                        .collect(Collectors.toList());
+                
+                recommendations.addAll(artistTracks);
+            }
+            
+            // 3. Remove duplicates and shuffle
+            Set<TrackDTO> uniqueTracks = new LinkedHashSet<>(recommendations);
+            List<TrackDTO> result = new ArrayList<>(uniqueTracks);
+            Collections.shuffle(result);
+            
+            // 4. Limit results
+            List<TrackDTO> finalResult = result.stream()
+                    .limit(limit)
+                    .collect(Collectors.toList());
+            
+            log.info("Returning {} similar artist tracks for user: {}", finalResult.size(), userId);
+            return finalResult;
+            
+        } catch (Exception e) {
+            log.error("Error getting similar artist tracks for user: {}", userId, e);
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TrackDTO> getSimilarGenreTracks(Long userId, int limit) {
+        log.info("Getting similar genre tracks for user: {} with limit: {}", userId, limit);
+        
+        try {
+            // 1. Get genres from user's listening history with duration > 30s
+            List<String> listenedGenres = listeningHistoryRepository
+                    .findDistinctGenresByUserIdAndMinDuration(userId, MIN_LISTENING_DURATION);
+            
+            if (listenedGenres.isEmpty()) {
+                log.info("No genres found in listening history for user: {}", userId);
+                return Collections.emptyList();
+            }
+            
+            log.info("Found {} genres from listening history for user: {}: {}", 
+                    listenedGenres.size(), userId, listenedGenres);
+            
+            // 2. Get all tracks from these genres
+            List<TrackDTO> recommendations = new ArrayList<>();
+            
+            for (String genre : listenedGenres) {
+                List<TrackDTO> genreTracks = trackRepository
+                        .findByGenreIgnoreCase(genre)
+                        .stream()
+                        .map(track -> trackMapper.toDTO(track, userId))
+                        .collect(Collectors.toList());
+                
+                recommendations.addAll(genreTracks);
+            }
+            
+            // 3. Remove duplicates and shuffle
+            Set<TrackDTO> uniqueTracks = new LinkedHashSet<>(recommendations);
+            List<TrackDTO> result = new ArrayList<>(uniqueTracks);
+            Collections.shuffle(result);
+            
+            // 4. Limit results
+            List<TrackDTO> finalResult = result.stream()
+                    .limit(limit)
+                    .collect(Collectors.toList());
+            
+            log.info("Returning {} similar genre tracks for user: {}", finalResult.size(), userId);
+            return finalResult;
+            
+        } catch (Exception e) {
+            log.error("Error getting similar genre tracks for user: {}", userId, e);
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TrackDTO> getFollowingLikedTracks(Long userId, int limit) {
+        log.info("Getting following liked tracks for user: {} with limit: {}", userId, limit);
+        
+        try {
+            // 1. Get tracks liked by users that the current user is following
+            Page<TrackDTO> followingLikedTracks = trackService.getTracksLikedByFollowing(
+                    userId, 
+                    PageRequest.of(0, limit)
+            );
+            
+            List<TrackDTO> result = followingLikedTracks.getContent();
+            
+            log.info("Returning {} following liked tracks for user: {}", result.size(), userId);
+            return result;
+            
+        } catch (Exception e) {
+            log.error("Error getting following liked tracks for user: {}", userId, e);
+            return Collections.emptyList();
+        }
+    }
+
     /**
      * Fallback method to get tracks when no recommendations available
      */

@@ -271,6 +271,11 @@ public class TrackController {
         return ResponseEntity.ok(trackService.getAllTracksForDiscover(userId));
     }
 
+    @GetMapping("/{id}/total-plays")
+    public ResponseEntity<Long> getTotalPlayCountFromHistory(@PathVariable Long id) {
+        return ResponseEntity.ok(trackService.getTotalPlayCountFromHistory(id));
+    }
+
     private Long getCurrentUserId() {
         // TODO: Implement getting current user ID from security context
         return 1L; // Temporary hardcoded value for testing

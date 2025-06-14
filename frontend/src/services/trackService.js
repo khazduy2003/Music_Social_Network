@@ -277,11 +277,11 @@ export const trackService = {
     return response.data;
   },
 
-  // Get most played tracks
+  // Get most played tracks (50 tracks from database)
   getMostPlayedTracks: async () => {
     try {
       const userId = JSON.parse(localStorage.getItem('user'))?.id;
-      const response = await api.get(`/tracks/most-played${userId ? `?userId=${userId}` : ''}`);
+      const response = await api.get(`/tracks/most-played?size=50${userId ? `&userId=${userId}` : ''}`);
       return response.data.content || [];
     } catch (error) {
       console.error('Error fetching most played tracks:', error);
@@ -355,7 +355,7 @@ export const trackService = {
         throw new Error('User not authenticated');
       }
       
-      const response = await api.get(`/recommendations/debug/${userId}`);
+      const response = await api.get(`/recommendations/user/${userId}/debug`);
       return response.data;
     } catch (error) {
       console.error('Error debugging recommendations:', error);
@@ -432,6 +432,65 @@ export const trackService = {
     } catch (error) {
       console.error('Error incrementing play count:', error);
       return false;
+    }
+  },
+
+  // Get similar artist tracks (new recommendation method)
+  getSimilarArtistTracks: async (limit = 20) => {
+    try {
+      const userId = JSON.parse(localStorage.getItem('user'))?.id;
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
+      
+      const response = await api.get(`/recommendations/user/${userId}/similar-artists?limit=${limit}`);
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching similar artist tracks:', error);
+      return [];
+    }
+  },
+
+  // Get similar genre tracks (new recommendation method)
+  getSimilarGenreTracks: async (limit = 20) => {
+    try {
+      const userId = JSON.parse(localStorage.getItem('user'))?.id;
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
+      
+      const response = await api.get(`/recommendations/user/${userId}/similar-genres?limit=${limit}`);
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching similar genre tracks:', error);
+      return [];
+    }
+  },
+
+  // Get following liked tracks (new recommendation method)
+  getFollowingLikedTracks: async (limit = 20) => {
+    try {
+      const userId = JSON.parse(localStorage.getItem('user'))?.id;
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
+      
+      const response = await api.get(`/recommendations/user/${userId}/following-liked?limit=${limit}`);
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching following liked tracks:', error);
+      return [];
+    }
+  },
+
+  // Get total play count from listening history
+  getTotalPlayCountFromHistory: async (trackId) => {
+    try {
+      const response = await api.get(`/tracks/${trackId}/total-plays`);
+      return response.data || 0;
+    } catch (error) {
+      console.error('Error fetching total play count from history:', error);
+      return 0;
     }
   },
 }; 

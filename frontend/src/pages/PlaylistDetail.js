@@ -461,7 +461,6 @@ const PlaylistDetail = () => {
                   <TableCell sx={{ color: '#b3b3b3', borderColor: 'rgba(255,255,255,0.1)' }}>TITLE</TableCell>
                   <TableCell sx={{ color: '#b3b3b3', borderColor: 'rgba(255,255,255,0.1)' }}>ARTIST</TableCell>
                   <TableCell sx={{ color: '#b3b3b3', borderColor: 'rgba(255,255,255,0.1)' }}>GENRE</TableCell>
-                  <TableCell sx={{ color: '#b3b3b3', borderColor: 'rgba(255,255,255,0.1)', display: { xs: 'none', md: 'table-cell' } }}>PLAYS</TableCell>
                   <TableCell align="right" sx={{ color: '#b3b3b3', borderColor: 'rgba(255,255,255,0.1)' }}>
                     <AccessTimeIcon fontSize="small" />
                   </TableCell>
@@ -540,9 +539,6 @@ const PlaylistDetail = () => {
                             fontSize: '0.7rem'
                           }}
                         />
-                      </TableCell>
-                      <TableCell sx={{ color: '#b3b3b3', borderColor: 'rgba(255,255,255,0.1)', display: { xs: 'none', md: 'table-cell' } }}>
-                        {track.playCount || 0}
                       </TableCell>
                       <TableCell align="right" sx={{ color: '#b3b3b3', borderColor: 'rgba(255,255,255,0.1)' }}>
                         {formatDuration(track.duration)}

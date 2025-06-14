@@ -13,15 +13,15 @@ import { playlistService } from '../services/playlistService';
 
 const Home = () => {
   const [trendingTracks, setTrendingTracks] = useState([]);
-  const [recommendedTracks, setRecommendedTracks] = useState([]);
-  const [artistRecommendations, setArtistRecommendations] = useState([]);
-  const [genreRecommendations, setGenreRecommendations] = useState([]);
+  const [mixedRecommendations, setMixedRecommendations] = useState([]);
+  const [similarArtistTracks, setSimilarArtistTracks] = useState([]);
+  const [similarGenreTracks, setSimilarGenreTracks] = useState([]);
   const [followingLikedTracks, setFollowingLikedTracks] = useState([]);
   const [publicPlaylists, setPublicPlaylists] = useState([]);
   const [loadingTrending, setLoadingTrending] = useState(true);
-  const [loadingRecommended, setLoadingRecommended] = useState(true);
-  const [loadingArtistRecs, setLoadingArtistRecs] = useState(true);
-  const [loadingGenreRecs, setLoadingGenreRecs] = useState(true);
+  const [loadingMixed, setLoadingMixed] = useState(true);
+  const [loadingSimilarArtists, setLoadingSimilarArtists] = useState(true);
+  const [loadingSimilarGenres, setLoadingSimilarGenres] = useState(true);
   const [loadingFollowingLiked, setLoadingFollowingLiked] = useState(true);
   const [loadingPublicPlaylists, setLoadingPublicPlaylists] = useState(true);
   const [error, setError] = useState(null);
@@ -67,57 +67,43 @@ const Home = () => {
       }
     };
 
-    // Fetch general recommended tracks
-    const fetchRecommendedTracks = async () => {
-      try {
-        setLoadingRecommended(true);
-        const response = await trackService.getRecommendedTracks();
-        setRecommendedTracks(response || []);
-        setLoadingRecommended(false);
-      } catch (err) {
-        console.error('Error fetching recommended tracks:', err);
-        setError('Failed to load recommended tracks');
-        setLoadingRecommended(false);
-      }
-    };
-
-    // Fetch artist-based recommendations
-    const fetchArtistRecommendations = async () => {
+    // Fetch similar artist tracks (new API)
+    const fetchSimilarArtistTracks = async () => {
       if (!isAuthenticated) {
-        setLoadingArtistRecs(false);
+        setLoadingSimilarArtists(false);
         return;
       }
       
       try {
-        setLoadingArtistRecs(true);
-        const response = await trackService.getRecommendationsByArtist(8);
-        setArtistRecommendations(response || []);
-        setLoadingArtistRecs(false);
+        setLoadingSimilarArtists(true);
+        const response = await trackService.getSimilarArtistTracks(8);
+        setSimilarArtistTracks(response || []);
+        setLoadingSimilarArtists(false);
       } catch (err) {
-        console.error('Error fetching artist recommendations:', err);
-        setLoadingArtistRecs(false);
+        console.error('Error fetching similar artist tracks:', err);
+        setLoadingSimilarArtists(false);
       }
     };
 
-    // Fetch genre-based recommendations
-    const fetchGenreRecommendations = async () => {
+    // Fetch similar genre tracks (new API)
+    const fetchSimilarGenreTracks = async () => {
       if (!isAuthenticated) {
-        setLoadingGenreRecs(false);
+        setLoadingSimilarGenres(false);
         return;
       }
       
       try {
-        setLoadingGenreRecs(true);
-        const response = await trackService.getRecommendationsByGenre(8);
-        setGenreRecommendations(response || []);
-        setLoadingGenreRecs(false);
+        setLoadingSimilarGenres(true);
+        const response = await trackService.getSimilarGenreTracks(8);
+        setSimilarGenreTracks(response || []);
+        setLoadingSimilarGenres(false);
       } catch (err) {
-        console.error('Error fetching genre recommendations:', err);
-        setLoadingGenreRecs(false);
+        console.error('Error fetching similar genre tracks:', err);
+        setLoadingSimilarGenres(false);
       }
     };
     
-    // Fetch tracks liked by users the current user is following
+    // Fetch following liked tracks (new API)
     const fetchFollowingLikedTracks = async () => {
       if (!isAuthenticated) {
         setLoadingFollowingLiked(false);
@@ -126,11 +112,11 @@ const Home = () => {
       
       try {
         setLoadingFollowingLiked(true);
-        const response = await trackService.getTracksLikedByFollowing(8);
+        const response = await trackService.getFollowingLikedTracks(8);
         setFollowingLikedTracks(response || []);
         setLoadingFollowingLiked(false);
       } catch (err) {
-        console.error('Error fetching tracks liked by following users:', err);
+        console.error('Error fetching following liked tracks:', err);
         setLoadingFollowingLiked(false);
       }
     };
@@ -186,35 +172,74 @@ const Home = () => {
     };
 
     fetchTrendingTracks();
-    fetchRecommendedTracks();
-    fetchArtistRecommendations();
-    fetchGenreRecommendations();
+    fetchSimilarArtistTracks();
+    fetchSimilarGenreTracks();
     fetchFollowingLikedTracks();
     fetchPublicPlaylists();
   }, [isAuthenticated]);
+
+  // Create mixed recommendations from all recommendation sources
+  useEffect(() => {
+    const createMixedRecommendations = () => {
+      if (!isAuthenticated) {
+        setLoadingMixed(false);
+        return;
+      }
+
+      // Wait for all recommendation data to load
+      if (loadingSimilarArtists || loadingSimilarGenres || loadingFollowingLiked) {
+        return;
+      }
+
+      try {
+        setLoadingMixed(true);
+        
+        // Combine all recommendation sources
+        const allRecommendations = [
+          ...similarArtistTracks,
+          ...similarGenreTracks,
+          ...followingLikedTracks
+        ];
+
+        // Remove duplicates based on track ID
+        const uniqueTracks = allRecommendations.filter((track, index, self) => 
+          index === self.findIndex(t => t.id === track.id)
+        );
+
+        // Shuffle the array to get random mix
+        const shuffled = [...uniqueTracks].sort(() => Math.random() - 0.5);
+        
+        // Take 6-8 tracks for mixed recommendations
+        const mixedTracks = shuffled.slice(0, 8);
+        
+        setMixedRecommendations(mixedTracks);
+        setLoadingMixed(false);
+      } catch (err) {
+        console.error('Error creating mixed recommendations:', err);
+        setLoadingMixed(false);
+      }
+    };
+
+    createMixedRecommendations();
+  }, [isAuthenticated, similarArtistTracks, similarGenreTracks, followingLikedTracks, loadingSimilarArtists, loadingSimilarGenres, loadingFollowingLiked]);
 
   // Thêm useEffect mới để lắng nghe sự kiện refresh-public-playlists
   useEffect(() => {
     // Handler cho sự kiện refresh public playlists
     const handleRefreshPublicPlaylists = () => {
       console.log('Received refresh-public-playlists event, refreshing public playlists');
-      // Gọi lại API để lấy danh sách public playlists mới nhất
-      playlistService.getPublicPlaylists().then(playlists => {
-        console.log('Home - refreshed public playlists:', playlists.length, 'items');
-        setPublicPlaylists(playlists);
-      }).catch(error => {
-        console.error('Error refreshing public playlists:', error);
-      });
+      // Refresh public playlists data
+      window.location.reload(); // Simple refresh for now
     };
 
-    // Đăng ký event listener
+    // Listen for the custom event
     window.addEventListener('refresh-public-playlists', handleRefreshPublicPlaylists);
 
-    // Cleanup function để tránh memory leak
+    // Cleanup
     return () => {
       window.removeEventListener('refresh-public-playlists', handleRefreshPublicPlaylists);
     };
-  }, []); // Empty dependency array means this runs once on mount and cleanup on unmount
+  }, []);
 
   const handlePlayTrack = (track) => {
     if (currentTrack && currentTrack.id === track.id) {
@@ -245,9 +270,10 @@ const Home = () => {
       );
       
       setTrendingTracks(updateTracks);
-      setRecommendedTracks(updateTracks);
-      setArtistRecommendations(updateTracks);
-      setGenreRecommendations(updateTracks);
+      setMixedRecommendations(updateTracks);
+      setSimilarArtistTracks(updateTracks);
+      setSimilarGenreTracks(updateTracks);
+      setFollowingLikedTracks(updateTracks);
       
       toast.success('Favourites updated');
     } catch (err) {
@@ -300,113 +326,32 @@ const Home = () => {
     setRecommendationTab(newValue);
   };
 
-  // Debug function for testing recommendations
   const handleDebugRecommendations = async () => {
-    if (!isAuthenticated) {
-      toast.error('Please log in first');
-      return;
-    }
-
-    console.log('🔍 DEBUG: Starting recommendation system test...');
-    
     try {
-      // 1. Check listening history
-      const hasHistory = await trackService.hasValidListeningHistory();
-      console.log('📊 Has valid listening history (>30s):', hasHistory);
-      
-      // 2. Get current preferences
-      const currentPrefs = await trackService.getUserPreferences();
-      console.log('⚙️ Current user preferences:', currentPrefs);
-      
-      // 3. Update preferences from history
-      const updatedPrefs = await trackService.updatePreferencesFromHistory();
-      console.log('🔄 Updated preferences from history:', updatedPrefs);
-      
-      // 4. Debug database content - Temporarily disabled due to backend issue
-      // const debugInfo = await trackService.debugRecommendations();
-      // console.log('🔧 Database Debug Info:', debugInfo);
-      
-      // 5. Test individual recommendation APIs
-      const [artistRecs, genreRecs, mixedRecs] = await Promise.all([
-        trackService.getRecommendationsByArtist(5),
-        trackService.getRecommendationsByGenre(5),
-        trackService.getRecommendedTracks()
-      ]);
-      
-      console.log('🎵 Artist-based recommendations:', artistRecs);
-      console.log('🎸 Genre-based recommendations:', genreRecs);
-      console.log('🔀 Mixed recommendations:', mixedRecs);
-      
-      // 5. Refresh UI after delay
-      let countdown = 10;
-      const countdownInterval = setInterval(() => {
-        countdown--;
-        if (countdown > 0) {
-          toast.success(`Debug completed! Reloading in ${countdown}s... (Check Console F12)`, {
-            duration: 1000,
-            id: 'countdown'
-          });
-        } else {
-          clearInterval(countdownInterval);
-          window.location.reload();
-        }
-      }, 1000);
-      
-      toast.success('Debug info logged to console! Check F12 → Console');
-      
+      const debug = await trackService.debugRecommendations();
+      console.log('Debug info:', debug);
+      setDebugInfo(prev => ({
+        ...prev,
+        debugMode: !prev.debugMode
+      }));
     } catch (error) {
-      console.error('❌ Debug error:', error);
-      toast.error('Debug failed: ' + error.message);
+      console.error('Debug error:', error);
     }
   };
 
-  const handlePlayPlaylist = (playlist) => {
-    if (playlist && playlist.id) {
-      playlistService.incrementPlayCount(playlist.id);
-      navigate(`/playlists/${playlist.id}`);
-    }
-  };
-
-  const handleSharePlaylist = (playlist) => {
-    setTrackToShare(playlist);
-    setShareModalOpen(true);
-  };
-
-  const handleLikePlaylist = async (playlist) => {
-    if (!isAuthenticated) {
-      toast.error('Please log in to like playlists');
-      return;
-    }
-    
-    try {
-      await playlistService.toggleLike(playlist.id);
-      
-      // Update the playlists state to reflect the change
-      setPublicPlaylists(prevPlaylists => 
-        prevPlaylists.map(p => 
-          p.id === playlist.id ? { ...p, isLiked: !p.isLiked } : p
-        )
-      );
-      
-      toast.success(playlist.isLiked ? 'Removed from favorites' : 'Added to favorites');
-    } catch (err) {
-      console.error('Error toggling playlist like:', err);
-      toast.error('Failed to update favorites');
-    }
-  };
-
+  // Get current recommendations based on selected tab
   const getCurrentRecommendations = () => {
     switch (recommendationTab) {
       case 0:
-        return { tracks: recommendedTracks, loading: loadingRecommended };
+        return { tracks: mixedRecommendations, loading: loadingMixed };
       case 1:
-        return { tracks: artistRecommendations, loading: loadingArtistRecs };
+        return { tracks: similarArtistTracks, loading: loadingSimilarArtists };
       case 2:
-        return { tracks: genreRecommendations, loading: loadingGenreRecs };
+        return { tracks: similarGenreTracks, loading: loadingSimilarGenres };
       case 3:
         return { tracks: followingLikedTracks, loading: loadingFollowingLiked };
       default:
-        return { tracks: recommendedTracks, loading: loadingRecommended };
+        return { tracks: mixedRecommendations, loading: loadingMixed };
     }
   };
 
@@ -636,7 +581,7 @@ const Home = () => {
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  handlePlayPlaylist(playlist);
+                  navigate(`/playlists/${playlist.id}`);
                 }}
               >
                 <PlayArrow fontSize="small" sx={{ color: 'white' }} />
@@ -663,7 +608,7 @@ const Home = () => {
               size="small"
               onClick={(e) => {
                 e.stopPropagation();
-                handleLikePlaylist(playlist);
+                handleLikeTrack(playlist.id);
               }}
               sx={{
                 position: 'absolute',
@@ -700,8 +645,8 @@ const Home = () => {
             
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
               <Avatar 
-                src={playlist.user?.avatarUrl} 
-                alt={playlist.createdBy || 'User'}
+                src={playlist.user?.profileImageUrl} 
+                alt={playlist.user?.username || 'User'}
                 sx={{ width: 16, height: 16, mr: 0.5 }}
               />
               <Typography 
@@ -714,7 +659,7 @@ const Home = () => {
                   maxWidth: '80%'
                 }}
               >
-                {playlist.createdBy || 'User'}
+                {playlist.user?.username || 'User'}
               </Typography>
             </Box>
             
@@ -1037,8 +982,8 @@ const Home = () => {
                   bgcolor: '#1db954',
                   '&:hover': { bgcolor: '#0f9d58' }
                 }}
-                onClick={() => handlePlayAll(recommendedTracks)}
-                disabled={loadingRecommended || recommendedTracks.length === 0}
+                onClick={() => handlePlayAll(mixedRecommendations)}
+                disabled={loadingMixed || mixedRecommendations.length === 0}
               >
                 Play All
               </Button>
@@ -1046,10 +991,10 @@ const Home = () => {
           </Box>
           
           <Grid container spacing={3}>
-            {loadingRecommended ? 
+            {loadingMixed ? 
               renderSkeletons(4) : 
-              recommendedTracks.length > 0 ? 
-                recommendedTracks.slice(0, 4).map(renderTrackCard) : 
+              mixedRecommendations.length > 0 ? 
+                mixedRecommendations.slice(0, 4).map(renderTrackCard) : 
                 <Box sx={{ p: 4, width: '100%', textAlign: 'center' }}>
                   <Typography variant="h6" sx={{ color: '#b3b3b3' }}>No popular tracks found</Typography>
                 </Box>

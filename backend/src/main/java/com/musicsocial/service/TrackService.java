@@ -34,4 +34,5 @@ public interface TrackService {
     List<TrackDTO> getLikedTracks(Long userId);
     Page<TrackDTO> getTracksLikedByFollowing(Long userId, Pageable pageable);
     List<TrackDTO> getAllTracksForDiscover(Long userId);
+    Long getTotalPlayCountFromHistory(Long trackId);
 } 

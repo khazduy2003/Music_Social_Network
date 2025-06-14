@@ -88,7 +88,7 @@ public class RecommendationController {
         }
     }
 
-    @GetMapping("/debug/{userId}")
+    @GetMapping("/user/{userId}/debug")
     @Operation(summary = "Debug recommendation system", 
                description = "Debug endpoint to check system status")
     public ResponseEntity<?> debugRecommendations(@PathVariable Long userId) {
@@ -109,6 +109,69 @@ public class RecommendationController {
         } catch (Exception e) {
             log.error("Error in debug endpoint for user: {}", userId, e);
             return ResponseEntity.internalServerError().body("Debug error: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/user/{userId}/similar-artists")
+    @Operation(summary = "Get similar artist tracks", 
+               description = "Get tracks from same artists user has listened to for more than 30s")
+    public ResponseEntity<List<TrackDTO>> getSimilarArtistTracks(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "20") int limit) {
+        
+        log.info("Getting similar artist tracks for user: {}, limit: {}", userId, limit);
+        
+        try {
+            List<TrackDTO> recommendations = recommendationService.getSimilarArtistTracks(userId, limit);
+            
+            log.info("Found {} similar artist tracks for user: {}", recommendations.size(), userId);
+            return ResponseEntity.ok(recommendations);
+            
+        } catch (Exception e) {
+            log.error("Error getting similar artist tracks for user: {}", userId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/user/{userId}/similar-genres")
+    @Operation(summary = "Get similar genre tracks", 
+               description = "Get tracks from same genres user has listened to for more than 30s")
+    public ResponseEntity<List<TrackDTO>> getSimilarGenreTracks(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "20") int limit) {
+        
+        log.info("Getting similar genre tracks for user: {}, limit: {}", userId, limit);
+        
+        try {
+            List<TrackDTO> recommendations = recommendationService.getSimilarGenreTracks(userId, limit);
+            
+            log.info("Found {} similar genre tracks for user: {}", recommendations.size(), userId);
+            return ResponseEntity.ok(recommendations);
+            
+        } catch (Exception e) {
+            log.error("Error getting similar genre tracks for user: {}", userId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/user/{userId}/following-liked")
+    @Operation(summary = "Get tracks liked by following users", 
+               description = "Get tracks liked by users that the current user is following")
+    public ResponseEntity<List<TrackDTO>> getFollowingLikedTracks(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "20") int limit) {
+        
+        log.info("Getting following liked tracks for user: {}, limit: {}", userId, limit);
+        
+        try {
+            List<TrackDTO> recommendations = recommendationService.getFollowingLikedTracks(userId, limit);
+            
+            log.info("Found {} following liked tracks for user: {}", recommendations.size(), userId);
+            return ResponseEntity.ok(recommendations);
+            
+        } catch (Exception e) {
+            log.error("Error getting following liked tracks for user: {}", userId, e);
+            return ResponseEntity.internalServerError().build();
         }
     }
 } 
