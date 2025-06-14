@@ -8,4 +8,6 @@ public class RegisterDTO {
     private String email;
     private String password;
     private String confirmPassword;
+    private String role = "USER"; // Default role is USER
+    private String secretKey; // Required only for ADMIN role
 } 

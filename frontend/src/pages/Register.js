@@ -10,7 +10,11 @@ import {
   Alert,
   CircularProgress,
   Fade,
-  Slide
+  Slide,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
 import { MusicNote as MusicIcon, PersonAdd as RegisterIcon } from '@mui/icons-material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
@@ -24,7 +28,9 @@ const Register = () => {
     username: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    role: 'USER',
+    secretKey: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -47,11 +53,20 @@ const Register = () => {
       return;
     }
 
+    if (formData.role === 'ADMIN' && !formData.secretKey) {
+      setError('Secret key is required for admin registration');
+      setLoading(false);
+      return;
+    }
+
     try {
       await register({
         username: formData.username,
         email: formData.email,
-        password: formData.password
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+        role: formData.role,
+        secretKey: formData.role === 'ADMIN' ? formData.secretKey : undefined
       });
       toast.success('Account created successfully! Please log in.');
       navigate('/login');
@@ -287,7 +302,7 @@ const Register = () => {
                   onChange={handleChange}
                   required
                   sx={{
-                    mb: 4,
+                    mb: 3,
                     '& .MuiOutlinedInput-root': {
                       color: 'white',
                       backgroundColor: 'rgba(255, 255, 255, 0.05)',
@@ -312,65 +327,136 @@ const Register = () => {
                   }}
                 />
 
+                <FormControl
+                  fullWidth
+                  sx={{
+                    mb: 3,
+                    '& .MuiOutlinedInput-root': {
+                      color: 'white',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      borderRadius: 2,
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.2)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#1db954',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#1db954',
+                        borderWidth: 2,
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: '#b3b3b3',
+                      '&.Mui-focused': {
+                        color: '#1db954',
+                      },
+                    },
+                    '& .MuiSelect-icon': {
+                      color: '#b3b3b3',
+                    },
+                  }}
+                >
+                  <InputLabel>Role</InputLabel>
+                  <Select
+                    name="role"
+                    value={formData.role}
+                    onChange={handleChange}
+                    label="Role"
+                  >
+                    <MenuItem value="USER">User</MenuItem>
+                    <MenuItem value="ADMIN">Admin</MenuItem>
+                  </Select>
+                </FormControl>
+
+                {formData.role === 'ADMIN' && (
+                  <TextField
+                    fullWidth
+                    name="secretKey"
+                    label="Admin Secret Key"
+                    type="password"
+                    variant="outlined"
+                    value={formData.secretKey}
+                    onChange={handleChange}
+                    required
+                    placeholder="Enter admin secret key"
+                    sx={{
+                      mb: 3,
+                      '& .MuiOutlinedInput-root': {
+                        color: 'white',
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                        borderRadius: 2,
+                        '& fieldset': {
+                          borderColor: 'rgba(255, 255, 255, 0.2)',
+                        },
+                        '&:hover fieldset': {
+                          borderColor: '#1db954',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: '#1db954',
+                          borderWidth: 2,
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: '#b3b3b3',
+                        '&.Mui-focused': {
+                          color: '#1db954',
+                        },
+                      },
+                    }}
+                  />
+                )}
+
                 <Button
                   type="submit"
                   fullWidth
                   variant="contained"
                   disabled={loading}
-                  startIcon={!loading && <RegisterIcon />}
+                  startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <RegisterIcon />}
                   sx={{
-                    py: 1.5,
+                    py: 1.8,
+                    fontSize: '1.1rem',
+                    fontWeight: 600,
+                    borderRadius: 2,
                     background: 'linear-gradient(45deg, #1db954 30%, #1ed760 90%)',
-                    boxShadow: '0 8px 32px rgba(29, 185, 84, 0.3)',
+                    boxShadow: '0 6px 20px rgba(29, 185, 84, 0.3)',
+                    textTransform: 'none',
                     '&:hover': {
                       background: 'linear-gradient(45deg, #1ed760 30%, #1db954 90%)',
-                      boxShadow: '0 12px 40px rgba(29, 185, 84, 0.4)',
-                      transform: 'translateY(-2px)',
+                      boxShadow: '0 8px 25px rgba(29, 185, 84, 0.4)',
+                      transform: 'translateY(-1px)',
                     },
                     '&:disabled': {
-                      backgroundColor: 'rgba(29, 185, 84, 0.3)',
+                      background: 'rgba(29, 185, 84, 0.3)',
+                      color: 'rgba(255, 255, 255, 0.5)',
                     },
-                    fontSize: '1.1rem',
-                    fontWeight: 'bold',
-                    borderRadius: 3,
-                    mb: 3,
-                    textTransform: 'none',
-                    transition: 'all 0.3s ease'
+                    transition: 'all 0.3s ease',
                   }}
                 >
-                  {loading ? (
-                    <CircularProgress size={24} color="inherit" />
-                  ) : (
-                    'Create Account'
-                  )}
+                  {loading ? 'Creating Account...' : 'Create Account'}
                 </Button>
+
+                <Box sx={{ textAlign: 'center', mt: 3 }}>
+                  <Typography variant="body2" sx={{ color: '#b3b3b3' }}>
+                    Already have an account?{' '}
+                    <Link
+                      component={RouterLink}
+                      to="/login"
+                      sx={{
+                        color: '#1db954',
+                        textDecoration: 'none',
+                        fontWeight: 600,
+                        '&:hover': {
+                          textDecoration: 'underline',
+                        },
+                      }}
+                    >
+                      Sign in here
+                    </Link>
+                  </Typography>
+                </Box>
               </form>
             </Slide>
-
-            {/* Sign In Link */}
-            <Fade in={true} timeout={1000}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="body2" sx={{ color: '#b3b3b3' }}>
-                  Already have an account?{' '}
-                  <Link
-                    component={RouterLink}
-                    to="/login"
-                    sx={{
-                      color: '#1db954',
-                      textDecoration: 'none',
-                      fontWeight: 'bold',
-                      '&:hover': {
-                        textDecoration: 'underline',
-                        color: '#1ed760',
-                      },
-                      transition: 'color 0.3s ease'
-                    }}
-                  >
-                    Sign in here
-                  </Link>
-                </Typography>
-              </Box>
-            </Fade>
           </Paper>
         </Fade>
       </Box>

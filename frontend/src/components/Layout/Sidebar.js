@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Box, 
   Drawer, 
@@ -29,10 +29,12 @@ import {
   ChevronLeft as ChevronLeftIcon,
   Favorite as FavoriteIcon,
   Login as LoginIcon,
-  PersonAdd as PersonAddIcon
+  PersonAdd as PersonAddIcon,
+  Dashboard as DashboardIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSidebar } from '../../contexts/SidebarContext';
+import { adminService } from '../../services/adminService';
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -41,6 +43,26 @@ const Sidebar = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user, isAuthenticated, logout } = useAuth();
   const { isCollapsed, sidebarWidth, toggleSidebar } = useSidebar();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Check admin access
+  useEffect(() => {
+    const checkAdminAccess = async () => {
+      if (isAuthenticated && user) {
+        try {
+          const adminAccess = await adminService.checkAdminAccess(user.id);
+          setIsAdmin(adminAccess);
+        } catch (error) {
+          console.error('Error checking admin access:', error);
+          setIsAdmin(false);
+        }
+      } else {
+        setIsAdmin(false);
+      }
+    };
+
+    checkAdminAccess();
+  }, [user, isAuthenticated]);
 
   const menuItems = [
     { text: 'Home', icon: <HomeIcon />, path: '/', color: '#6366f1' },
@@ -57,6 +79,11 @@ const Sidebar = () => {
   const socialItems = [
     { text: 'Discover Users', icon: <PersonAddIcon />, path: '/discover-users', color: '#06b6d4' },
   ];
+
+  // Admin items - only show if user is admin
+  const adminItems = isAdmin ? [
+    { text: 'Admin Dashboard', icon: <DashboardIcon />, path: '/admin', color: '#ef4444' },
+  ] : [];
 
   const isActive = (path) => {
     return location.pathname === path;
@@ -394,6 +421,35 @@ const Sidebar = () => {
         <List sx={{ width: '100%', mb: 2 }}>
           <MenuItem item={{ text: 'Discover Users', icon: <PersonAddIcon />, path: '/discover-users', color: '#06b6d4' }} />
         </List>
+
+        {/* Admin Section - Only show if user is admin */}
+        {isAdmin && (
+          <>
+            {!isCollapsed && (
+              <Typography 
+                variant="subtitle2" 
+                sx={{ 
+                  color: '#b3b3b3', 
+                  textTransform: 'uppercase', 
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.1em',
+                  fontWeight: 700,
+                  ml: 3,
+                  mt: 2,
+                  mb: 1
+                }}
+              >
+                Administration
+              </Typography>
+            )}
+
+            <List sx={{ width: '100%', mb: 2 }}>
+              {adminItems.map((item) => (
+                <MenuItem key={item.text} item={item} />
+              ))}
+            </List>
+          </>
+        )}
       </Box>
     </Drawer>
   );

@@ -43,6 +43,7 @@ C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\
 C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\dto\user\UserCreateDTO.java
 C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\mapper\UserMapper.java
 C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\service\JwtService.java
+C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\service\impl\AdminServiceImpl.java
 C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\service\impl\FileStorageServiceImpl.java
 C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\dto\track\TrackUpdateDTO.java
 C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\service\PlaylistService.java
@@ -63,12 +64,14 @@ C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\
 C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\mapper\TrackMapper.java
 C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\MusicSocialApplication.java
 C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\dto\user\RegisterDTO.java
+C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\service\AdminService.java
 C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\service\impl\AuthServiceImpl.java
 C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\service\impl\JwtServiceImpl.java
 C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\exception\ResourceNotFoundException.java
 C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\service\impl\UserPreferenceServiceImpl.java
 C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\scheduler\JamendoDataScheduler.java
 C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\repository\UserRepository.java
+C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\dto\admin\SystemStatsDTO.java
 C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\service\impl\TrackServiceImpl.java
 C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\service\JamendoService.java
 C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\dto\preference\UserPreferenceDTO.java
@@ -77,6 +80,7 @@ C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\
 C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\service\impl\ListeningHistoryServiceImpl.java
 C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\dto\playlist\PlaylistCreateDTO.java
 C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\service\FileStorageService.java
+C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\dto\admin\UserManagementDTO.java
 C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\domain\ListeningHistory.java
 C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\repository\TrackRepository.java
 C:\Users\Admin\Desktop\Graduation_Project\backend\src\main\java\com\musicsocial\dto\history\ListeningHistoryUpdateDTO.java

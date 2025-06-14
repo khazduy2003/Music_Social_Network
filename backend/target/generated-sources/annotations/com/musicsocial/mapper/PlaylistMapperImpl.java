@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-06-13T00:23:32+0700",
+    date = "2025-06-14T11:49:06+0700",
     comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.15 (Oracle Corporation)"
 )
 @Component
@@ -75,17 +75,18 @@ public class PlaylistMapperImpl implements PlaylistMapper {
             return null;
         }
 
-        UserDTO userDTO = new UserDTO();
+        UserDTO.UserDTOBuilder userDTO = UserDTO.builder();
 
-        userDTO.setId( user.getId() );
-        userDTO.setUsername( user.getUsername() );
-        userDTO.setEmail( user.getEmail() );
-        userDTO.setFullName( user.getFullName() );
-        userDTO.setBio( user.getBio() );
-        userDTO.setCreatedAt( user.getCreatedAt() );
-        userDTO.setUpdatedAt( user.getUpdatedAt() );
+        userDTO.id( user.getId() );
+        userDTO.username( user.getUsername() );
+        userDTO.email( user.getEmail() );
+        userDTO.fullName( user.getFullName() );
+        userDTO.bio( user.getBio() );
+        userDTO.role( user.getRole() );
+        userDTO.createdAt( user.getCreatedAt() );
+        userDTO.updatedAt( user.getUpdatedAt() );
 
-        return userDTO;
+        return userDTO.build();
     }
 
     protected Set<UserDTO> userSetToUserDTOSet(Set<User> set) {

@@ -412,8 +412,10 @@ const TrackDetail = () => {
         </Grid>
       </Grid>
       
-      {/* Comments Section */}
+      {/* Comments Section 
       <TrackComments trackId={track.id} trackTitle={track.title} />
+      */}
+      
       
       {/* Share Modal */}
       <ShareModal 

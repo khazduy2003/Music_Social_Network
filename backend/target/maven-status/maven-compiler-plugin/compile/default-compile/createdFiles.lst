@@ -3,6 +3,7 @@ com\musicsocial\mapper\NotificationMapper.class
 com\musicsocial\mapper\TrackMapper.class
 com\musicsocial\dto\notification\NotificationDTO$NotificationDTOBuilder.class
 com\musicsocial\controller\AuthController.class
+com\musicsocial\dto\admin\UserManagementDTO$UserManagementDTOBuilder.class
 com\musicsocial\dto\comment\CommentCreateDTO.class
 com\musicsocial\mapper\ListeningHistoryMapper.class
 com\musicsocial\service\ListeningHistoryService.class
@@ -23,8 +24,10 @@ com\musicsocial\service\impl\AuthServiceImpl.class
 com\musicsocial\controller\FileController.class
 com\musicsocial\controller\SearchController.class
 com\musicsocial\service\NotificationService.class
+com\musicsocial\dto\admin\SystemStatsDTO$TopItemDTO$TopItemDTOBuilder.class
 com\musicsocial\mapper\TrackMapperImpl.class
 com\musicsocial\service\impl\PlaylistServiceImpl.class
+com\musicsocial\dto\admin\UserManagementDTO.class
 com\musicsocial\config\AppConfig.class
 com\musicsocial\controller\UserController.class
 com\musicsocial\dto\auth\LoginDTO.class
@@ -37,7 +40,10 @@ com\musicsocial\controller\CommentController.class
 com\musicsocial\mapper\PlaylistMapper.class
 com\musicsocial\dto\ErrorResponse.class
 com\musicsocial\service\TrackService.class
+com\musicsocial\dto\admin\SystemStatsDTO$SystemStatsDTOBuilder.class
+com\musicsocial\dto\admin\SystemStatsDTO$UserStatsDTO$UserStatsDTOBuilder.class
 com\musicsocial\dto\notification\ShareNotificationDTO$ShareNotificationDTOBuilder.class
+com\musicsocial\dto\user\UserDTO$UserDTOBuilder.class
 com\musicsocial\controller\PlaylistController.class
 com\musicsocial\service\impl\TrackServiceImpl.class
 com\musicsocial\dto\history\ListeningHistoryDTO.class
@@ -49,6 +55,7 @@ com\musicsocial\dto\track\TrackCreateDTO.class
 com\musicsocial\dto\user\UserUpdateDTO.class
 com\musicsocial\service\impl\JwtServiceImpl.class
 com\musicsocial\repository\FollowRepository.class
+com\musicsocial\service\AdminService.class
 com\musicsocial\dto\user\UserCreateDTO.class
 com\musicsocial\controller\AdminController.class
 com\musicsocial\domain\Notification$NotificationBuilder.class
@@ -56,9 +63,12 @@ com\musicsocial\mapper\CommentMapper.class
 com\musicsocial\repository\PlaylistRepository.class
 com\musicsocial\controller\RecommendationController.class
 com\musicsocial\service\impl\CommentServiceImpl.class
+com\musicsocial\dto\admin\SystemStatsDTO$UserStatsDTO.class
 com\musicsocial\mapper\NotificationMapperImpl.class
 com\musicsocial\dto\user\UserDTO.class
 com\musicsocial\service\CommentService.class
+com\musicsocial\dto\admin\SystemStatsDTO$TopItemDTO.class
+com\musicsocial\dto\admin\SystemStatsDTO.class
 com\musicsocial\repository\ListeningHistoryRepository.class
 com\musicsocial\dto\auth\AuthResponse.class
 com\musicsocial\service\AuthService.class
@@ -93,6 +103,7 @@ com\musicsocial\mapper\UserMapper.class
 com\musicsocial\repository\NotificationRepository.class
 com\musicsocial\domain\Track.class
 com\musicsocial\service\impl\UserPreferenceServiceImpl.class
+com\musicsocial\service\impl\AdminServiceImpl.class
 com\musicsocial\service\impl\NotificationServiceImpl.class
 com\musicsocial\service\FileStorageService.class
 com\musicsocial\dto\history\ListeningHistoryUpdateDTO.class

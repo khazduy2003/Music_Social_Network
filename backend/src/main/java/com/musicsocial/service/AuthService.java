@@ -9,4 +9,5 @@ public interface AuthService {
     UserDTO register(RegisterDTO registerDTO);
     UserDTO login(LoginDTO loginDTO);
     AuthResponse loginWithToken(LoginDTO loginDTO);
+    AuthResponse registerAdmin(RegisterDTO registerDTO);
 }

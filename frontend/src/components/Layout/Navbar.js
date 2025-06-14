@@ -20,7 +20,8 @@ import {
   Logout as LogoutIcon,
   Settings as SettingsIcon,
   Notifications as NotificationIcon,
-  Favorite as FavoriteIcon
+  Favorite as FavoriteIcon,
+  Dashboard as DashboardIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -50,6 +51,10 @@ const Navbar = () => {
     if (event.key === 'Enter' && searchQuery.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
+  };
+
+  const handleAdminDashboard = () => {
+    navigate('/admin');
   };
 
   return (
@@ -151,6 +156,29 @@ const Navbar = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           {/* Notification Center */}
           {user && <NotificationCenter />}
+
+          {/* Admin Dashboard Button - Only show for admin users */}
+          {user && user.role === 'ADMIN' && (
+            <Tooltip title="Admin Dashboard" arrow>
+              <IconButton
+                onClick={handleAdminDashboard}
+                sx={{
+                  background: 'rgba(255, 152, 0, 0.2)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 152, 0, 0.4)',
+                  color: '#ff9800',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
+                    background: 'rgba(255, 152, 0, 0.3)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 8px 25px rgba(255, 152, 0, 0.4)',
+                  }
+                }}
+              >
+                <DashboardIcon />
+              </IconButton>
+            </Tooltip>
+          )}
 
           {/* User Menu */}
           <Box sx={{ position: 'relative' }}>

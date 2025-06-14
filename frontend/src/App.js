@@ -15,6 +15,7 @@ import Navbar from './components/Layout/Navbar';
 import Sidebar from './components/Layout/Sidebar';
 import MusicPlayer from './components/Player/MusicPlayer';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
 
 // Pages
 import Home from './pages/Home';
@@ -33,6 +34,7 @@ import DiscoverUsers from './pages/DiscoverUsers';
 import FollowersPage from './pages/FollowersPage';
 import FollowingPage from './pages/FollowingPage';
 import TrackDetail from './pages/TrackDetail';
+import AdminDashboard from './pages/AdminDashboard';
 
 
 
@@ -149,6 +151,11 @@ const MainLayout = () => {
             <Route path="/users/:username/following" element={<FollowingPage />} />
             <Route path="/track/:id" element={<TrackDetail />} />
             <Route path="/tracks/:id" element={<TrackDetail />} />
+            <Route path="/admin" element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            } />
           </Routes>
         </Box>
       </Box>

@@ -117,4 +117,8 @@ public interface ListeningHistoryRepository extends JpaRepository<ListeningHisto
      * Find listening history by user ID with minimum duration threshold
      */
     List<ListeningHistory> findByUserIdAndDurationGreaterThanOrderByCreatedAtDesc(Long userId, Integer minDuration);
+    
+    // Admin query for total listening time
+    @Query("SELECT COALESCE(SUM(lh.duration), 0) FROM ListeningHistory lh WHERE lh.user.id = :userId")
+    Long getTotalListeningTimeByUserId(@Param("userId") Long userId);
 } 

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,4 +32,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     @Query("SELECT u FROM User u JOIN u.followers f1 JOIN u.following f2 WHERE f1.id = :userId AND f2.id = :userId")
     List<User> findMutualFollowingUsers(Long userId);
+    
+    // Admin queries
+    Long countByCreatedAtAfter(LocalDateTime date);
+    
+    @Query("SELECT u FROM User u ORDER BY (SIZE(u.tracks) + SIZE(u.playlists) + SIZE(u.followers)) DESC")
+    List<User> findTopUsersByActivity();
 } 

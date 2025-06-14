@@ -34,6 +34,12 @@ public class User {
     private String profileImageUrl;
     private String role = "USER";
 
+    // Admin-related fields
+    private String banReason;
+    private LocalDateTime bannedAt;
+    private String bannedBy;
+    private LocalDateTime lastLoginAt;
+
     @ManyToMany
     @JoinTable(
         name = "user_followers",
@@ -67,15 +73,18 @@ public class User {
     )
     private Set<Playlist> likedPlaylists = new HashSet<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private Set<ListeningHistory> listeningHistory = new HashSet<>();
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private UserPreference preferences;
 
     @CreatedDate
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
-    @Column(nullable = false)
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @PrePersist
@@ -155,17 +164,25 @@ public class User {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(id, username, email);
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(id, user.id) &&
-               Objects.equals(username, user.username) &&
-               Objects.equals(email, user.email);
+        return Objects.equals(id, user.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", role='" + role + '\'' +
+                '}';
     }
 } 

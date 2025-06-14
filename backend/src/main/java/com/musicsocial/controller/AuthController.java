@@ -3,14 +3,16 @@ package com.musicsocial.controller;
 import com.musicsocial.dto.user.UserDTO;
 import com.musicsocial.dto.auth.RegisterDTO;
 import com.musicsocial.dto.auth.LoginDTO;
+import com.musicsocial.dto.auth.AuthResponse;
 import com.musicsocial.service.AuthService;
+import com.musicsocial.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import com.musicsocial.dto.auth.AuthResponse;
-import com.musicsocial.service.JwtService;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -24,31 +26,21 @@ public class AuthController {
     private final JwtService jwtService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterDTO registerDTO) {
-        try {
-            log.info("Received registration request: {}", objectMapper.writeValueAsString(registerDTO));
-            UserDTO userDTO = authService.register(registerDTO);
-            String token = jwtService.generateToken(userDTO);
-            AuthResponse response = new AuthResponse(userDTO, token);
-            log.info("Registration successful for user: {}", userDTO.getUsername());
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            log.error("Registration failed", e);
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<AuthResponse> register(@RequestBody RegisterDTO registerDTO) {
+        UserDTO user = authService.register(registerDTO);
+        String token = jwtService.generateToken(user);
+        return ResponseEntity.ok(new AuthResponse(user, token));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
-        try {
-            log.info("Received login request for user: {}", loginDTO.getUsername());
-            AuthResponse response = authService.loginWithToken(loginDTO); // Trả về user + token
-            log.info("Login successful for user: {}", loginDTO.getUsername());
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            log.error("Login failed", e);
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<AuthResponse> login(@RequestBody LoginDTO loginDTO) {
+        UserDTO user = authService.login(loginDTO);
+        String token = jwtService.generateToken(user);
+        return ResponseEntity.ok(new AuthResponse(user, token));
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout() {
+        return ResponseEntity.ok("Logged out successfully");
+    }
 }

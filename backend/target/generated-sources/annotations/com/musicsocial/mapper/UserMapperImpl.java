@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-06-13T00:23:33+0700",
+    date = "2025-06-14T11:49:06+0700",
     comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.15 (Oracle Corporation)"
 )
 @Component
@@ -21,21 +21,22 @@ public class UserMapperImpl implements UserMapper {
             return null;
         }
 
-        UserDTO userDTO = new UserDTO();
+        UserDTO.UserDTOBuilder userDTO = UserDTO.builder();
 
-        userDTO.setAvatarUrl( user.getProfileImageUrl() );
-        userDTO.setId( user.getId() );
-        userDTO.setUsername( user.getUsername() );
-        userDTO.setEmail( user.getEmail() );
-        userDTO.setFullName( user.getFullName() );
-        userDTO.setBio( user.getBio() );
-        userDTO.setCreatedAt( user.getCreatedAt() );
-        userDTO.setUpdatedAt( user.getUpdatedAt() );
+        userDTO.avatarUrl( user.getProfileImageUrl() );
+        userDTO.id( user.getId() );
+        userDTO.username( user.getUsername() );
+        userDTO.email( user.getEmail() );
+        userDTO.fullName( user.getFullName() );
+        userDTO.bio( user.getBio() );
+        userDTO.role( user.getRole() );
+        userDTO.createdAt( user.getCreatedAt() );
+        userDTO.updatedAt( user.getUpdatedAt() );
 
-        userDTO.setFollowersCount( user.getFollowers().size() );
-        userDTO.setFollowingCount( user.getFollowing().size() );
+        userDTO.followersCount( (long)user.getFollowers().size() );
+        userDTO.followingCount( (long)user.getFollowing().size() );
 
-        return userDTO;
+        return userDTO.build();
     }
 
     @Override

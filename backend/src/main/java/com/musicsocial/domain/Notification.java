@@ -30,7 +30,7 @@ public class Notification {
     private String message;
 
     @Column(name = "notification_type", nullable = false)
-    private String type; // FOLLOW, LIKE, SHARE, COMMENT, SYSTEM
+    private String type; // FOLLOW, LIKE, SHARE, SYSTEM
 
     @Column(name = "item_type")
     private String itemType; // track, playlist, album, user

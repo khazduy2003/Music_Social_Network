@@ -21,7 +21,7 @@ public class NotificationCreateDTO {
     private String message;
     
     @NotBlank(message = "Notification type is required")
-    private String type; // FOLLOW, LIKE, SHARE, COMMENT, SYSTEM
+    private String type; // FOLLOW, LIKE, SHARE, SYSTEM
     
     private String itemType; // track, playlist, album, user
     

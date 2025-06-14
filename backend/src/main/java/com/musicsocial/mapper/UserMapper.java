@@ -12,8 +12,8 @@ import org.mapstruct.ReportingPolicy;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE, unmappedSourcePolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
     @Mapping(target = "avatarUrl", source = "profileImageUrl")
-    @Mapping(target = "followersCount", expression = "java(user.getFollowers().size())")
-    @Mapping(target = "followingCount", expression = "java(user.getFollowing().size())")
+    @Mapping(target = "followersCount", expression = "java((long)user.getFollowers().size())")
+    @Mapping(target = "followingCount", expression = "java((long)user.getFollowing().size())")
     @Mapping(target = "isFollowing", ignore = true)
     UserDTO toDTO(User user);
     
@@ -29,6 +29,11 @@ public interface UserMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "role", ignore = true)
+    @Mapping(target = "banReason", ignore = true)
+    @Mapping(target = "bannedAt", ignore = true)
+    @Mapping(target = "bannedBy", ignore = true)
+    @Mapping(target = "lastLoginAt", ignore = true)
+    @Mapping(target = "listeningHistory", ignore = true)
     User toEntity(UserCreateDTO dto);
     
     @Mapping(target = "id", ignore = true)
@@ -43,5 +48,10 @@ public interface UserMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "role", ignore = true)
+    @Mapping(target = "banReason", ignore = true)
+    @Mapping(target = "bannedAt", ignore = true)
+    @Mapping(target = "bannedBy", ignore = true)
+    @Mapping(target = "lastLoginAt", ignore = true)
+    @Mapping(target = "listeningHistory", ignore = true)
     void updateEntityFromDTO(UserUpdateDTO dto, @MappingTarget User user);
 } 
