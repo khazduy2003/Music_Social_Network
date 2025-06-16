@@ -272,10 +272,7 @@ const TrackCard = ({ track, showArtist = true }) => {
                   {isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                 </ListItemText>
               </MenuItem>
-              <MenuItem onClick={handleAddToQueue}>
-                
-                <ListItemText>Add to Playlist</ListItemText>
-              </MenuItem>
+              
               <MenuItem onClick={(e) => handleShare(e)}>
                 <ListItemIcon>
                   <Share sx={{ color: 'rgba(255,255,255,0.7)' }} />

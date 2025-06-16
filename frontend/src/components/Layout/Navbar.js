@@ -18,7 +18,6 @@ import {
   Search as SearchIcon,
   AccountCircle as AccountIcon,
   Logout as LogoutIcon,
-  Settings as SettingsIcon,
   Notifications as NotificationIcon,
   Favorite as FavoriteIcon,
   Dashboard as DashboardIcon
@@ -317,11 +316,6 @@ const Navbar = () => {
               <MenuItem onClick={() => { navigate('/profile'); handleMenuClose(); }}>
                 <AccountIcon sx={{ mr: 2, color: '#8b5cf6' }} />
                 <Typography sx={{ fontWeight: 500 }}>Profile</Typography>
-              </MenuItem>
-              
-              <MenuItem onClick={handleMenuClose}>
-                <SettingsIcon sx={{ mr: 2, color: '#f59e0b' }} />
-                <Typography sx={{ fontWeight: 500 }}>Settings</Typography>
               </MenuItem>
               
               <MenuItem 
