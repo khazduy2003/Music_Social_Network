@@ -2,19 +2,19 @@ package com.musicsocial.service.impl;
 
 import com.musicsocial.domain.Track;
 import com.musicsocial.domain.User;
-import com.musicsocial.dto.track.TrackDTO;
+import com.musicsocial.dto.notification.NotificationCreateDTO;
 import com.musicsocial.dto.track.TrackCreateDTO;
+import com.musicsocial.dto.track.TrackDTO;
 import com.musicsocial.dto.track.TrackUpdateDTO;
 import com.musicsocial.exception.ResourceNotFoundException;
 import com.musicsocial.mapper.TrackMapper;
+import com.musicsocial.repository.ListeningHistoryRepository;
 import com.musicsocial.repository.TrackRepository;
 import com.musicsocial.repository.UserRepository;
-import com.musicsocial.repository.ListeningHistoryRepository;
-import com.musicsocial.service.TrackService;
 import com.musicsocial.service.FileStorageService;
 import com.musicsocial.service.ListeningHistoryService;
 import com.musicsocial.service.NotificationService;
-import com.musicsocial.dto.notification.NotificationCreateDTO;
+import com.musicsocial.service.TrackService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -44,38 +44,29 @@ public class TrackServiceImpl implements TrackService {
 
     @Override
     public TrackDTO createTrack(TrackCreateDTO trackCreateDTO) {
-        User user = userRepository.findById(trackCreateDTO.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + trackCreateDTO.getUserId()));
-
         Track track = trackMapper.toEntity(trackCreateDTO);
-        track.setUser(user);
-        return trackMapper.toDTO(trackRepository.save(track), user.getId());
+        track.setPlayCount(0);
+        return trackMapper.toDTO(trackRepository.save(track), null);
     }
 
     @Override
     public TrackDTO uploadTrack(String title, String artist, String album, String genre, String description,
                                MultipartFile audioFile, MultipartFile coverImage, Long userId) {
-        log.info("Uploading track for user: {}, title: {}", userId, title);
-        
         try {
             // Get user
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
-            // Validate audio file
-            if (audioFile == null || audioFile.isEmpty()) {
-                throw new IllegalArgumentException("Audio file is required");
+            // Save files and get URLs
+            String audioUrl = null;
+            String coverImageUrl = null;
+
+            if (audioFile != null && !audioFile.isEmpty()) {
+                audioUrl = fileStorageService.storeAudioFile(audioFile, userId);
             }
 
-            // Store audio file
-            String audioPath = fileStorageService.storeAudioFile(audioFile, userId);
-            String audioUrl = fileStorageService.getFileUrl(audioPath);
-
-            // Store cover image if provided
-            String coverImageUrl = null;
             if (coverImage != null && !coverImage.isEmpty()) {
-                String imagePath = fileStorageService.storeImageFile(coverImage, userId);
-                coverImageUrl = fileStorageService.getFileUrl(imagePath);
+                coverImageUrl = fileStorageService.storeImageFile(coverImage, userId);
             }
 
             // Create track entity
@@ -83,27 +74,19 @@ public class TrackServiceImpl implements TrackService {
             track.setTitle(title);
             track.setArtist(artist);
             track.setAlbum(album);
-            track.setGenre(genre != null && !genre.isEmpty() ? genre : "Other");
+            track.setGenre(genre);
             track.setAudioUrl(audioUrl);
             track.setCoverImageUrl(coverImageUrl);
             track.setUser(user);
             track.setPlayCount(0);
-            track.setRating(0.0);
-            track.setRatingCount(0);
 
-            // Try to get audio duration (basic implementation)
-            // In a real application, you might want to use a library like JAudioTagger
-            // For now, we'll set a default duration
-            track.setDuration(180); // 3 minutes default
-
+            // Save and return DTO
             Track savedTrack = trackRepository.save(track);
-            log.info("Track uploaded successfully: {}", savedTrack.getId());
-
             return trackMapper.toDTO(savedTrack, userId);
-            
+
         } catch (Exception e) {
-            log.error("Error uploading track for user: {}", userId, e);
-            throw new RuntimeException("Failed to upload track: " + e.getMessage(), e);
+            log.error("Error creating track", e);
+            throw new RuntimeException("Failed to create track", e);
         }
     }
 
@@ -181,8 +164,8 @@ public class TrackServiceImpl implements TrackService {
         user.getLikedTracks().add(track);
         userRepository.save(user);
         
-        // Send notification to track owner (if not liking own track)
-        if (!userId.equals(track.getUser().getId())) {
+        // Send notification to track owner (if not liking own track and track has an owner)
+        if (track.getUser() != null && !userId.equals(track.getUser().getId())) {
             try {
                 NotificationCreateDTO notificationDTO = NotificationCreateDTO.builder()
                         .senderId(userId)
@@ -209,24 +192,6 @@ public class TrackServiceImpl implements TrackService {
 
         user.getLikedTracks().remove(track);
         userRepository.save(user);
-    }
-
-    @Override
-    public void rateTrack(Long userId, Long trackId, Double rating) {
-        Track track = trackRepository.findById(trackId)
-                .orElseThrow(() -> new ResourceNotFoundException("Track not found with id: " + trackId));
-
-        // Simple rating implementation - you might want to track individual user ratings
-        if (track.getRating() == null || track.getRating() == 0.0) {
-            track.setRating(rating);
-            track.setRatingCount(1);
-        } else {
-            Double currentTotal = track.getRating() * track.getRatingCount();
-            track.setRatingCount(track.getRatingCount() + 1);
-            track.setRating((currentTotal + rating) / track.getRatingCount());
-        }
-        
-        trackRepository.save(track);
     }
 
     @Override
@@ -281,7 +246,7 @@ public class TrackServiceImpl implements TrackService {
     @Override
     @Transactional(readOnly = true)
     public Page<TrackDTO> getTopRatedTracks(Long userId, Pageable pageable) {
-        return trackRepository.findTopRated(pageable)
+        return trackRepository.findMostPlayed(pageable)
                 .map(track -> trackMapper.toDTO(track, userId));
     }
 

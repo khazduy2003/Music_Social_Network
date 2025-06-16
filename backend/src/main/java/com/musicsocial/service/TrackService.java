@@ -23,7 +23,6 @@ public interface TrackService {
     void deleteTrack(Long id);
     void likeTrack(Long userId, Long trackId);
     void unlikeTrack(Long userId, Long trackId);
-    void rateTrack(Long userId, Long trackId, Double rating);
     void incrementPlayCount(Long trackId);
     Page<TrackDTO> searchTracks(String query, Pageable pageable);
     Page<TrackDTO> searchTracks(String query, Pageable pageable, Long userId);

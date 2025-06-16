@@ -1,0 +1,245 @@
+\section{Thiết kế giao diện}
+
+\subsection{Đặc tả môi trường giao diện}
+
+\subsubsection{Thông số kỹ thuật màn hình}
+
+Hệ thống được thiết kế để hỗ trợ đa dạng các thiết bị và độ phân giải màn hình khác nhau:
+
+\paragraph{Độ phân giải màn hình:}
+\begin{itemize}
+    \item \textbf{Desktop/Laptop:} 1920×1080 (Full HD) trở lên
+    \item \textbf{Tablet:} 1024×768 đến 1366×1024
+    \item \textbf{Mobile:} 375×667 (iPhone SE) đến 428×926 (iPhone 14 Pro Max)
+    \item \textbf{Ultra-wide:} 2560×1080 và 3440×1440
+\end{itemize}
+
+\paragraph{Kích thước màn hình:}
+\begin{itemize}
+    \item \textbf{Mobile:} 4.7" - 6.7" (viewport responsive)
+    \item \textbf{Tablet:} 7.9" - 12.9" (responsive breakpoints)
+    \item \textbf{Desktop:} 13" - 27"+ (fixed layout với responsive elements)
+\end{itemize}
+
+\paragraph{Hỗ trợ màu sắc:}
+\begin{itemize}
+    \item \textbf{Color depth:} 24-bit True Color (16.7 triệu màu)
+    \item \textbf{HDR support:} Tương thích với HDR10 trên các thiết bị hỗ trợ
+    \item \textbf{Color gamut:} sRGB standard, P3 display support
+    \item \textbf{Contrast ratio:} Tối thiểu 1000:1 cho trải nghiệm tối ưu
+\end{itemize}
+
+\paragraph{Công nghệ hiển thị:}
+\begin{itemize}
+    \item \textbf{Responsive Web Design:} Sử dụng CSS Grid và Flexbox
+    \item \textbf{Progressive Web App (PWA):} Hỗ trợ offline và install
+    \item \textbf{High DPI support:} Retina display và high pixel density
+    \item \textbf{Browser compatibility:} Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
+\end{itemize}
+
+\subsection{Chuẩn hóa thiết kế giao diện}
+
+\subsubsection{Hệ thống màu sắc}
+
+Hệ thống sử dụng bảng màu Dark Theme với gradient hiện đại:
+
+\paragraph{Màu chính (Primary Colors):}
+\begin{itemize}
+    \item \textbf{Primary Green:} \#1db954 (Spotify-inspired green)
+    \item \textbf{Secondary Purple:} \#8B5CF6 (Modern violet)
+    \item \textbf{Accent Blue:} \#6366f1 (Indigo accent)
+\end{itemize}
+
+\paragraph{Màu nền (Background Colors):}
+\begin{itemize}
+    \item \textbf{Main Background:} Linear gradient từ \#0f0f23 đến \#0f3460
+    \item \textbf{Card Background:} rgba(20, 20, 30, 0.9) với backdrop blur
+    \item \textbf{Paper Background:} rgba(20, 20, 30, 0.8) với glass effect
+\end{itemize}
+
+\paragraph{Màu văn bản (Text Colors):}
+\begin{itemize}
+    \item \textbf{Primary Text:} \#ffffff (white)
+    \item \textbf{Secondary Text:} \#b3b3b3 (light gray)
+    \item \textbf{Muted Text:} \#666666 (medium gray)
+\end{itemize}
+
+\paragraph{Màu trạng thái (Status Colors):}
+\begin{itemize}
+    \item \textbf{Success:} \#4caf50 (green)
+    \item \textbf{Warning:} \#ff9800 (orange)
+    \item \textbf{Error:} \#f44336 (red)
+    \item \textbf{Info:} \#2196f3 (blue)
+\end{itemize}
+
+\subsubsection{Typography và Font}
+
+\paragraph{Font Family:}
+\begin{itemize}
+    \item \textbf{Primary Font:} "Inter" - Modern geometric sans-serif
+    \item \textbf{Fallback Fonts:} "Roboto", "Helvetica", "Arial", sans-serif
+    \item \textbf{Font Loading:} Google Fonts với font-display: swap
+\end{itemize}
+
+\paragraph{Font Weights và Sizes:}
+\begin{itemize}
+    \item \textbf{Headings:} Font-weight 700-800, sizes từ 2.5rem đến 1.25rem
+    \item \textbf{Body Text:} Font-weight 400-500, size 1rem (16px)
+    \item \textbf{Captions:} Font-weight 400, size 0.875rem (14px)
+    \item \textbf{Buttons:} Font-weight 600, text-transform: none
+\end{itemize}
+
+\subsubsection{Thiết kế thành phần giao diện}
+
+\paragraph{Buttons (Nút bấm):}
+\begin{itemize}
+    \item \textbf{Border Radius:} 25px cho rounded buttons
+    \item \textbf{Padding:} 12px 32px cho primary buttons
+    \item \textbf{Background:} Linear gradient với hover effects
+    \item \textbf{Transition:} 0.3s cubic-bezier(0.4, 0, 0.2, 1)
+    \item \textbf{Hover State:} Transform translateY(-2px) với box-shadow
+\end{itemize}
+
+\paragraph{Cards (Thẻ nội dung):}
+\begin{itemize}
+    \item \textbf{Background:} Glass morphism với backdrop-filter blur(20px)
+    \item \textbf{Border:} 1px solid rgba(255,255,255,0.1)
+    \item \textbf{Border Radius:} 20px
+    \item \textbf{Hover Effect:} Transform translateY(-4px) với shadow animation
+\end{itemize}
+
+\paragraph{Input Fields (Trường nhập liệu):}
+\begin{itemize}
+    \item \textbf{Style:} Outlined với glass background
+    \item \textbf{Border Radius:} 16px
+    \item \textbf{Focus State:} Purple border với glow effect
+    \item \textbf{Placeholder:} Light gray color \#b3b3b3
+\end{itemize}
+
+\paragraph{Navigation (Điều hướng):}
+\begin{itemize}
+    \item \textbf{Sidebar:} Collapsible với width animation
+    \item \textbf{Navbar:} Fixed top với backdrop blur
+    \item \textbf{Menu Items:} Rounded với color-coded icons
+    \item \textbf{Active State:} Gradient background với glow effect
+\end{itemize}
+
+\subsubsection{Thông điệp phản hồi và Notifications}
+
+\paragraph{Toast Notifications:}
+\begin{itemize}
+    \item \textbf{Position:} Top-right corner của viewport
+    \item \textbf{Duration:} 3-5 giây tùy theo loại thông báo
+    \item \textbf{Animation:} Slide-in từ phải với fade effect
+    \item \textbf{Types:} Success (green), Error (red), Warning (orange), Info (blue)
+\end{itemize}
+
+\paragraph{Loading States:}
+\begin{itemize}
+    \item \textbf{Skeleton Loading:} Animated shimmer effect
+    \item \textbf{Spinner:} Circular progress với brand colors
+    \item \textbf{Progressive Loading:} Content loads theo từng section
+\end{itemize}
+
+\paragraph{Error Handling:}
+\begin{itemize}
+    \item \textbf{Inline Errors:} Hiển thị dưới form fields
+    \item \textbf{Page Errors:} Full-page error với retry button
+    \item \textbf{Network Errors:} Toast notification với auto-retry
+\end{itemize}
+
+\subsection{Thiết kế màn hình chính}
+
+\subsubsection{Trang chủ (Home Page)}
+
+\paragraph{Layout Structure:}
+Trang chủ được thiết kế theo dạng dashboard với multiple sections:
+
+\begin{itemize}
+    \item \textbf{Header Section:} Navigation bar với search và user menu
+    \item \textbf{Sidebar:} Collapsible navigation với menu items
+    \item \textbf{Content Area:} Grid layout với các recommendation sections
+    \item \textbf{Player Controls:} Fixed bottom player với audio controls
+\end{itemize}
+
+\paragraph{Content Sections:}
+\begin{itemize}
+    \item \textbf{Trending Tracks:} Horizontal scroll grid 6 items
+    \item \textbf{Recommendations:} Tabbed interface với 3 loại gợi ý
+    \item \textbf{Public Playlists:} Community playlists với user avatars
+    \item \textbf{Recently Played:} User's listening history
+\end{itemize}
+
+\subsubsection{Music Player Interface}
+
+\paragraph{Player Components:}
+\begin{itemize}
+    \item \textbf{Track Info:} Album art, title, artist với scrolling text
+    \item \textbf{Controls:} Previous, Play/Pause, Next, Shuffle, Repeat
+    \item \textbf{Progress Bar:} Seekable timeline với time indicators
+    \item \textbf{Volume:} Slider control với mute toggle
+    \item \textbf{Queue:} Expandable playlist với drag-and-drop
+\end{itemize}
+
+\paragraph{Visual Effects:}
+\begin{itemize}
+    \item \textbf{Album Art Animation:} Rotating effect khi đang phát
+    \item \textbf{Waveform Visualization:} Audio spectrum hiển thị
+    \item \textbf{Color Extraction:} Dynamic colors từ album artwork
+\end{itemize}
+
+\subsubsection{Discovery và Search}
+
+\paragraph{Search Interface:}
+\begin{itemize}
+    \item \textbf{Search Bar:} Center-focused với live suggestions
+    \item \textbf{Filter Options:} Type-based filtering (tracks, artists, playlists)
+    \item \textbf{Results Layout:} Mixed media grid với lazy loading
+    \item \textbf{Recent Searches:} Quick access to previous queries
+\end{itemize}
+
+\paragraph{Discovery Features:}
+\begin{itemize}
+    \item \textbf{Genre Browse:} Visual genre cards với representative colors
+    \item \textbf{Mood Playlists:} Curated playlists cho different moods
+    \item \textbf{New Releases:} Latest uploads với date sorting
+    \item \textbf{Trending:} Popular content với play count metrics
+\end{itemize}
+
+\subsubsection{User Profile và Social Features}
+
+\paragraph{Profile Layout:}
+\begin{itemize}
+    \item \textbf{Header:} User avatar, bio, follower count
+    \item \textbf{Tabs:} Playlists, Liked Songs, Following, Followers
+    \item \textbf{Activity Feed:} Recent listening activity
+    \item \textbf{Stats:} Listening time, favorite genres
+\end{itemize}
+
+\paragraph{Social Interactions:}
+\begin{itemize}
+    \item \textbf{Follow Button:} Animated state changes
+    \item \textbf{Share Modal:} Multiple platform sharing options
+    \item \textbf{Comments:} Threaded discussion system
+    \item \textbf{Notifications:} Real-time updates via WebSocket
+\end{itemize}
+
+\subsubsection{Mobile Responsive Design}
+
+\paragraph{Mobile Layout Adaptations:}
+\begin{itemize}
+    \item \textbf{Bottom Navigation:} Tab bar thay thế sidebar
+    \item \textbf{Swipe Gestures:} Horizontal navigation between sections
+    \item \textbf{Touch-Optimized:} Larger touch targets (44px minimum)
+    \item \textbf{Full-Screen Player:} Expandable player interface
+\end{itemize}
+
+\paragraph{Performance Optimizations:}
+\begin{itemize}
+    \item \textbf{Image Optimization:} WebP format với fallbacks
+    \item \textbf{Lazy Loading:} Intersection Observer API
+    \item \textbf{Code Splitting:} Route-based component loading
+    \item \textbf{Caching Strategy:} Service Worker với cache policies
+\end{itemize}
+
+Thiết kế giao diện tập trung vào việc tạo ra một trải nghiệm người dùng mượt mà, hiện đại và thân thiện. Hệ thống color scheme và typography được lựa chọn để tạo ra sự nhất quán và chuyên nghiệp trong toàn bộ ứng dụng. Các animation và transition effects được sử dụng một cách tinh tế để tăng cường trải nghiệm người dùng mà không gây phân tâm. 

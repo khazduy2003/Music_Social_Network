@@ -1,0 +1,71 @@
+\section{Thiết kế giao diện}
+
+\subsection{Đặc tả môi trường giao diện}
+
+Giao diện hệ thống mạng xã hội âm nhạc được thiết kế dành cho nền tảng web, tối ưu cho các thiết bị máy tính để bàn hoặc laptop với tỷ lệ màn hình 16:9 và độ phân giải Full HD (1920×1080). Hệ thống hỗ trợ độ phân giải tối thiểu 1366×768 và tối đa 2560×1440, đảm bảo hiển thị tối ưu trên các màn hình từ 13 inch đến 32 inch.
+
+Ứng dụng sử dụng color depth 24-bit (16.7 triệu màu) với color space sRGB chuẩn, tương thích với các trình duyệt hiện đại như Chrome 90+, Firefox 88+, Edge 90+, và Safari 14+.
+
+\subsection{Chuẩn hóa thiết kế giao diện}
+
+\subsubsection{Hệ thống màu sắc}
+
+Giao diện áp dụng Dark Theme với bảng màu được chuẩn hóa như sau:
+\begin{itemize}
+    \item \textbf{Màu chính:} Xanh lá (#1db954) cho các nút bấm và accent chính
+    \item \textbf{Màu phụ:} Tím (#8b5cf6) cho highlights và secondary actions
+    \item \textbf{Màu nhấn:} Xanh dương (#6366f1) cho links và icons
+    \item \textbf{Nền chính:} Gradient từ (#0f0f23) đến (#0f3460)
+    \item \textbf{Nền thẻ:} Trong suốt rgba(20, 20, 30, 0.9) với backdrop blur
+    \item \textbf{Văn bản chính:} Trắng (#ffffff)
+    \item \textbf{Văn bản phụ:} Xám nhạt (#b3b3b3)
+\end{itemize}
+
+\subsubsection{Typography}
+
+Hệ thống sử dụng font "Inter" làm font chính với fallback stack "Roboto", "Arial", sans-serif. Hierarchy typography bao gồm:
+\begin{itemize}
+    \item \textbf{Heading 1:} 40px, font-weight 800
+    \item \textbf{Heading 2:} 32px, font-weight 700  
+    \item \textbf{Body text:} 16px, font-weight 400
+    \item \textbf{Small text:} 14px, font-weight 400
+\end{itemize}
+
+\subsubsection{Thiết kế nút bấm}
+
+Các nút bấm được thiết kế đồng nhất với border radius 25px và padding 12px 32px. Phân loại theo chức năng:
+\begin{itemize}
+    \item \textbf{Primary Button:} Gradient background từ (#6366f1) đến (#8b5cf6)
+    \item \textbf{Secondary Button:} Background trong suốt với border màu primary
+    \item \textbf{Text Button:} Chỉ sử dụng text màu primary
+\end{itemize}
+
+Tất cả nút bấm có transition 0.3s ease-in-out và hover effect với transform translateY(-2px) cùng box-shadow tăng cường.
+
+\subsubsection{Form Controls}
+
+Các trường nhập liệu sử dụng style outlined với:
+\begin{itemize}
+    \item \textbf{Border:} 1px solid rgba(255,255,255,0.2)
+    \item \textbf{Border radius:} 16px
+    \item \textbf{Focus state:} Border màu primary (#8b5cf6) với glow effect
+    \item \textbf{Background:} Trong suốt với backdrop filter
+\end{itemize}
+
+\subsubsection{Thông báo hệ thống}
+
+Thông báo trong hệ thống hiển thị dưới dạng toast notification ở góc trên-phải màn hình, với màu sắc phân biệt theo trạng thái:
+\begin{itemize}
+    \item \textbf{Thành công:} Màu xanh lá cây (#4caf50)
+    \item \textbf{Cảnh báo:} Màu vàng cam (#ff9800)
+    \item \textbf{Lỗi:} Màu đỏ (#f44336)
+    \item \textbf{Thông tin:} Màu xanh dương (#2196f3)
+\end{itemize}
+
+Tất cả thông báo sẽ tự động ẩn sau 4 giây (success/info) và 6 giây (error/warning) nhằm tránh gây cản trở trải nghiệm người dùng. Animation sử dụng slide-in từ phải và fade-out khi dismiss.
+
+\subsubsection{Layout và spacing}
+
+Giao diện sử dụng grid system 12-column với container max-width 1200px, căn giữa với auto margins. Spacing system áp dụng scale từ 4px (xs) đến 48px (xxl) để đảm bảo tính nhất quán trong việc bố trí các elements.
+
+Navigation bao gồm sidebar collapsible bên trái và navbar cố định trên đầu trang, cả hai đều sử dụng backdrop blur effect để tạo glass morphism hiện đại. 

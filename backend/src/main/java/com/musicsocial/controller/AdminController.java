@@ -61,25 +61,6 @@ public class AdminController {
         return ResponseEntity.ok("User role updated successfully");
     }
 
-    @PostMapping("/users/{userId}/ban")
-    public ResponseEntity<String> banUser(
-            @PathVariable Long userId,
-            @RequestParam String reason,
-            @RequestParam Long adminId) {
-        adminService.validateAdminAccess(adminId);
-        adminService.banUser(userId, reason, adminId);
-        return ResponseEntity.ok("User banned successfully");
-    }
-
-    @PostMapping("/users/{userId}/unban")
-    public ResponseEntity<String> unbanUser(
-            @PathVariable Long userId,
-            @RequestParam Long adminId) {
-        adminService.validateAdminAccess(adminId);
-        adminService.unbanUser(userId, adminId);
-        return ResponseEntity.ok("User unbanned successfully");
-    }
-
     @DeleteMapping("/users/{userId}")
     public ResponseEntity<String> deleteUser(
             @PathVariable Long userId,

@@ -28,6 +28,7 @@ import com.musicsocial.domain.Track;
 import com.musicsocial.domain.User;
 import com.musicsocial.repository.TrackRepository;
 import com.musicsocial.repository.UserRepository;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/tracks")
@@ -93,8 +94,11 @@ public class TrackController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/{trackId}/like/{userId}")
-    public ResponseEntity<Void> likeTrack(@PathVariable Long userId, @PathVariable Long trackId) {
+    @PostMapping("/like")
+    public ResponseEntity<Void> likeTrackSimple(@RequestBody Map<String, Long> request) {
+        Long userId = request.get("userId");
+        Long trackId = request.get("trackId");
+        
         trackService.likeTrack(userId, trackId);
         
         // Send notification to track owner
@@ -102,7 +106,7 @@ public class TrackController {
             User user = userRepository.findById(userId).orElse(null);
             Track track = trackRepository.findById(trackId).orElse(null);
             
-            if (user != null && track != null && !userId.equals(track.getUser().getId())) {
+            if (user != null && track != null && track.getUser() != null && !userId.equals(track.getUser().getId())) {
                 NotificationCreateDTO notificationDTO = NotificationCreateDTO.builder()
                         .senderId(userId)
                         .receiverId(track.getUser().getId())
@@ -120,18 +124,12 @@ public class TrackController {
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/{trackId}/like/{userId}")
-    public ResponseEntity<Void> unlikeTrack(@PathVariable Long userId, @PathVariable Long trackId) {
+    @PostMapping("/unlike")
+    public ResponseEntity<Void> unlikeTrackSimple(@RequestBody Map<String, Long> request) {
+        Long userId = request.get("userId");
+        Long trackId = request.get("trackId");
+        
         trackService.unlikeTrack(userId, trackId);
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/{trackId}/rate/{userId}")
-    public ResponseEntity<Void> rateTrack(
-            @PathVariable Long userId,
-            @PathVariable Long trackId,
-            @RequestParam Double rating) {
-        trackService.rateTrack(userId, trackId, rating);
         return ResponseEntity.ok().build();
     }
 

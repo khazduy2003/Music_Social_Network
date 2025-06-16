@@ -1,0 +1,265 @@
+\section{Thiết kế lớp}
+
+\subsection{Thiết kế chi tiết các lớp chủ đạo}
+
+Phần này trình bày thiết kế chi tiết các thuộc tính và phương thức cho 4 lớp chủ đạo quan trọng nhất của hệ thống mạng xã hội âm nhạc.
+
+\subsubsection{Lớp User (Người dùng)}
+
+Lớp User là lớp trung tâm của hệ thống, quản lý thông tin người dùng và các mối quan hệ xã hội.
+
+\textbf{Thuộc tính:}
+\begin{itemize}
+    \item \texttt{id: Long} - Khóa chính, tự động tăng
+    \item \texttt{username: String} - Tên đăng nhập, duy nhất, không null
+    \item \texttt{email: String} - Địa chỉ email, duy nhất, không null
+    \item \texttt{password: String} - Mật khẩu đã mã hóa, không null
+    \item \texttt{fullName: String} - Họ tên đầy đủ
+    \item \texttt{bio: String} - Tiểu sử người dùng
+    \item \texttt{profileImageUrl: String} - URL ảnh đại diện
+    \item \texttt{role: String} - Vai trò (USER/ADMIN), mặc định "USER"
+    \item \texttt{banReason: String} - Lý do bị cấm (nếu có)
+    \item \texttt{bannedAt: LocalDateTime} - Thời gian bị cấm
+    \item \texttt{bannedBy: String} - Người thực hiện cấm
+    \item \texttt{lastLoginAt: LocalDateTime} - Lần đăng nhập cuối
+    \item \texttt{following: Set<User>} - Danh sách người đang theo dõi
+    \item \texttt{followers: Set<User>} - Danh sách người theo dõi
+    \item \texttt{tracks: Set<Track>} - Danh sách bài hát đã tải lên
+    \item \texttt{likedTracks: Set<Track>} - Danh sách bài hát yêu thích
+    \item \texttt{playlists: Set<Playlist>} - Danh sách playlist sở hữu
+    \item \texttt{likedPlaylists: Set<Playlist>} - Danh sách playlist yêu thích
+    \item \texttt{listeningHistory: Set<ListeningHistory>} - Lịch sử nghe nhạc
+    \item \texttt{preferences: UserPreference} - Sở thích cá nhân
+    \item \texttt{createdAt: LocalDateTime} - Thời gian tạo tài khoản
+    \item \texttt{updatedAt: LocalDateTime} - Thời gian cập nhật cuối
+\end{itemize}
+
+\textbf{Phương thức chính:}
+\begin{itemize}
+    \item \texttt{onCreate(): void} - Lifecycle method, thiết lập thời gian tạo
+    \item \texttt{onUpdate(): void} - Lifecycle method, cập nhật thời gian sửa đổi
+    \item \texttt{equals(Object o): boolean} - So sánh đối tượng dựa trên id
+    \item \texttt{hashCode(): int} - Tính hash code dựa trên id
+    \item \texttt{toString(): String} - Chuyển đổi sang chuỗi hiển thị
+\end{itemize}
+
+\subsubsection{Lớp Track (Bài hát)}
+
+Lớp Track đại diện cho một bài hát trong hệ thống với đầy đủ metadata và thông tin thống kê.
+
+\textbf{Thuộc tính:}
+\begin{itemize}
+    \item \texttt{id: Long} - Khóa chính, tự động tăng
+    \item \texttt{title: String} - Tên bài hát, không null
+    \item \texttt{artist: String} - Tên nghệ sĩ, không null
+    \item \texttt{album: String} - Tên album
+    \item \texttt{genre: String} - Thể loại nhạc
+    \item \texttt{coverImageUrl: String} - URL ảnh bìa
+    \item \texttt{audioUrl: String} - URL file âm thanh
+    \item \texttt{duration: Integer} - Thời lượng bài hát (giây)
+    \item \texttt{jamendoId: String} - ID từ Jamendo API (nếu có)
+    \item \texttt{user: User} - Người dùng tải lên (many-to-one)
+    \item \texttt{playlists: Set<Playlist>} - Danh sách playlist chứa bài hát
+    \item \texttt{likedBy: Set<User>} - Danh sách người dùng yêu thích
+    \item \texttt{playCount: Integer} - Số lần phát, mặc định 0
+    \item \texttt{rating: Double} - Điểm đánh giá trung bình, mặc định 0.0
+    \item \texttt{ratingCount: Integer} - Số lượt đánh giá, mặc định 0
+    \item \texttt{createdAt: LocalDateTime} - Thời gian tạo
+    \item \texttt{updatedAt: LocalDateTime} - Thời gian cập nhật
+\end{itemize}
+
+\textbf{Phương thức chính:}
+\begin{itemize}
+    \item \texttt{onCreate(): void} - Thiết lập thời gian tạo và cập nhật
+    \item \texttt{onUpdate(): void} - Cập nhật thời gian sửa đổi
+    \item \texttt{getAverageRating(): Double} - Trả về điểm đánh giá trung bình
+    \item \texttt{setAverageRating(Double): void} - Thiết lập điểm đánh giá
+    \item \texttt{incrementPlayCount(): void} - Tăng số lần phát
+    \item \texttt{equals(Object o): boolean} - So sánh dựa trên id, title, artist
+    \item \texttt{hashCode(): int} - Tính hash code dựa trên id, title, artist
+\end{itemize}
+
+\subsubsection{Lớp RecommendationServiceImpl (Dịch vụ gợi ý)}
+
+Lớp này triển khai logic nghiệp vụ phức tạp cho hệ thống gợi ý nhạc thông minh.
+
+\textbf{Thuộc tính dependency:}
+\begin{itemize}
+    \item \texttt{listeningHistoryRepository: ListeningHistoryRepository} - Repository lịch sử nghe
+    \item \texttt{trackRepository: TrackRepository} - Repository bài hát
+    \item \texttt{trackMapper: TrackMapper} - Mapper chuyển đổi Track-DTO
+    \item \texttt{userPreferenceRepository: UserPreferenceRepository} - Repository sở thích
+    \item \texttt{userPreferenceService: UserPreferenceService} - Service sở thích người dùng
+    \item \texttt{trackService: TrackService} - Service bài hát
+    \item \texttt{MIN\_LISTENING\_DURATION: int = 30} - Thời gian nghe tối thiểu (giây)
+\end{itemize}
+
+\textbf{Phương thức chính:}
+\begin{itemize}
+    \item \texttt{getRecommendationsForUser(Long userId, Pageable): Page<TrackDTO>} - Lấy gợi ý tổng hợp cho người dùng
+    \item \texttt{getRecommendationsByArtist(Long userId, int limit): List<TrackDTO>} - Gợi ý dựa trên nghệ sĩ yêu thích
+    \item \texttt{getRecommendationsByGenre(Long userId, int limit): List<TrackDTO>} - Gợi ý dựa trên thể loại yêu thích
+    \item \texttt{getSimilarArtistTracks(Long userId, int limit): List<TrackDTO>} - Tìm bài hát của nghệ sĩ tương tự
+    \item \texttt{getSimilarGenreTracks(Long userId, int limit): List<TrackDTO>} - Tìm bài hát thể loại tương tự
+    \item \texttt{getFollowingLikedTracks(Long userId, int limit): List<TrackDTO>} - Lấy bài hát được người theo dõi yêu thích
+    \item \texttt{getFallbackRecommendations(Long userId, Pageable): Page<TrackDTO>} - Gợi ý dự phòng khi không có dữ liệu
+\end{itemize}
+
+\subsubsection{Lớp Playlist (Danh sách phát)}
+
+Lớp Playlist quản lý collection các bài hát được tổ chức theo chủ đề hoặc sở thích.
+
+\textbf{Thuộc tính:}
+\begin{itemize}
+    \item \texttt{id: Long} - Khóa chính, tự động tăng
+    \item \texttt{name: String} - Tên playlist, không null
+    \item \texttt{description: String} - Mô tả playlist
+    \item \texttt{coverImageUrl: String} - URL ảnh bìa playlist
+    \item \texttt{isPublic: Boolean} - Trạng thái công khai
+    \item \texttt{user: User} - Người tạo playlist (many-to-one)
+    \item \texttt{tracks: Set<Track>} - Danh sách bài hát trong playlist
+    \item \texttt{likedBy: Set<User>} - Danh sách người dùng yêu thích playlist
+    \item \texttt{playCount: Integer} - Số lần phát playlist, mặc định 0
+    \item \texttt{createdAt: LocalDateTime} - Thời gian tạo
+    \item \texttt{updatedAt: LocalDateTime} - Thời gian cập nhật
+\end{itemize}
+
+\textbf{Phương thức chính:}
+\begin{itemize}
+    \item \texttt{onCreate(): void} - Thiết lập thời gian tạo và playCount
+    \item \texttt{onUpdate(): void} - Cập nhật thời gian sửa đổi
+    \item \texttt{addTrack(Track track): void} - Thêm bài hát vào playlist
+    \item \texttt{removeTrack(Track track): void} - Xóa bài hát khỏi playlist
+    \item \texttt{getTotalDuration(): Integer} - Tính tổng thời lượng playlist
+    \item \texttt{getTrackCount(): Integer} - Đếm số bài hát trong playlist
+    \item \texttt{incrementPlayCount(): void} - Tăng số lần phát
+\end{itemize}
+
+\subsection{Biểu đồ trình tự cho các use case quan trọng}
+
+\subsubsection{Use Case 1: Người dùng phát một bài hát}
+
+\begin{verbatim}
+sequenceDiagram
+    participant User as 👤 User
+    participant Frontend as 🖥️ Frontend
+    participant TrackController as 🎛️ TrackController
+    participant TrackService as 🔧 TrackService
+    participant ListeningHistoryService as 📊 ListeningHistoryService
+    participant TrackRepository as 🗄️ TrackRepository
+    participant ListeningHistoryRepository as 📋 ListeningHistoryRepository
+    participant UserPreferenceService as ⚙️ UserPreferenceService
+
+    User->>Frontend: Click play button on track
+    Frontend->>TrackController: POST /api/tracks/{trackId}/play
+    TrackController->>TrackService: playTrack(trackId, userId)
+    
+    TrackService->>TrackRepository: findById(trackId)
+    TrackRepository-->>TrackService: Track entity
+    
+    TrackService->>TrackService: incrementPlayCount()
+    TrackService->>TrackRepository: save(track)
+    
+    TrackService->>ListeningHistoryService: recordListeningHistory(userId, trackId)
+    ListeningHistoryService->>ListeningHistoryRepository: save(listeningHistory)
+    
+    TrackService->>UserPreferenceService: updateFromListeningActivity(userId, track)
+    UserPreferenceService->>UserPreferenceService: analyzeAndUpdatePreferences()
+    
+    TrackService-->>TrackController: TrackDTO
+    TrackController-->>Frontend: HTTP 200 + TrackDTO
+    Frontend-->>User: Start playing audio + UI update
+\end{verbatim}
+
+\subsubsection{Use Case 2: Hệ thống tạo gợi ý nhạc cá nhân hóa}
+
+\begin{verbatim}
+sequenceDiagram
+    participant User as 👤 User
+    participant Frontend as 🖥️ Frontend
+    participant RecommendationController as 🎯 RecommendationController
+    participant RecommendationService as 🤖 RecommendationService
+    participant UserPreferenceService as ⚙️ UserPreferenceService
+    participant TrackRepository as 🗄️ TrackRepository
+    participant UserPreferenceRepository as 👥 UserPreferenceRepository
+    participant ListeningHistoryRepository as 📋 ListeningHistoryRepository
+
+    User->>Frontend: Navigate to Home/Recommendations
+    Frontend->>RecommendationController: GET /api/recommendations/user/{userId}
+    RecommendationController->>RecommendationService: getRecommendationsForUser(userId, pageable)
+    
+    RecommendationService->>UserPreferenceService: hasValidListeningHistory(userId)
+    UserPreferenceService->>ListeningHistoryRepository: countByUserId(userId)
+    ListeningHistoryRepository-->>UserPreferenceService: count
+    UserPreferenceService-->>RecommendationService: boolean
+    
+    alt Has valid listening history
+        RecommendationService->>UserPreferenceService: updatePreferencesFromListeningHistory(userId)
+        UserPreferenceService->>ListeningHistoryRepository: findByUserIdWithMinDuration(userId)
+        ListeningHistoryRepository-->>UserPreferenceService: List<ListeningHistory>
+        UserPreferenceService->>UserPreferenceService: analyzePreferences()
+        UserPreferenceService->>UserPreferenceRepository: save(userPreference)
+    end
+    
+    RecommendationService->>RecommendationService: getRecommendationsByArtist(userId, 10)
+    RecommendationService->>UserPreferenceRepository: findByUserId(userId)
+    UserPreferenceRepository-->>RecommendationService: UserPreference
+    RecommendationService->>TrackRepository: findByArtistIgnoreCaseAndIdNotIn(artists, excludedIds)
+    TrackRepository-->>RecommendationService: List<Track>
+    
+    RecommendationService->>RecommendationService: getRecommendationsByGenre(userId, 10)
+    RecommendationService->>TrackRepository: findByGenreIgnoreCaseAndIdNotIn(genres, excludedIds)
+    TrackRepository-->>RecommendationService: List<Track>
+    
+    RecommendationService->>RecommendationService: combineAndDeduplicateRecommendations()
+    RecommendationService->>RecommendationService: shuffleAndPaginate()
+    
+    RecommendationService-->>RecommendationController: Page<TrackDTO>
+    RecommendationController-->>Frontend: HTTP 200 + RecommendationResponse
+    Frontend-->>User: Display personalized recommendations
+\end{verbatim}
+
+\subsubsection{Use Case 3: Người dùng tạo và chia sẻ playlist công khai}
+
+\begin{verbatim}
+sequenceDiagram
+    participant User as 👤 User
+    participant Frontend as 🖥️ Frontend
+    participant PlaylistController as 📝 PlaylistController
+    participant PlaylistService as 🎵 PlaylistService
+    participant NotificationService as 🔔 NotificationService
+    participant PlaylistRepository as 🗂️ PlaylistRepository
+    participant UserRepository as 👥 UserRepository
+    participant NotificationRepository as 📢 NotificationRepository
+
+    User->>Frontend: Create new playlist form
+    Frontend->>PlaylistController: POST /api/playlists
+    PlaylistController->>PlaylistService: createPlaylist(createPlaylistDTO, userId)
+    
+    PlaylistService->>UserRepository: findById(userId)
+    UserRepository-->>PlaylistService: User entity
+    
+    PlaylistService->>PlaylistService: validatePlaylistData()
+    PlaylistService->>PlaylistRepository: save(playlist)
+    PlaylistRepository-->>PlaylistService: Saved Playlist
+    
+    alt Playlist is public
+        PlaylistService->>UserRepository: findFollowersByUserId(userId)
+        UserRepository-->>PlaylistService: List<User> followers
+        
+        loop For each follower
+            PlaylistService->>NotificationService: createPlaylistShareNotification(userId, followerId, playlistId)
+            NotificationService->>NotificationRepository: save(notification)
+        end
+    end
+    
+    PlaylistService-->>PlaylistController: PlaylistDTO
+    PlaylistController-->>Frontend: HTTP 201 + PlaylistDTO
+    Frontend-->>User: Success message + redirect to playlist
+
+    Note over NotificationService: Async notification sending
+    NotificationService->>NotificationService: sendRealTimeNotifications()
+    NotificationService-->>Frontend: WebSocket notifications to followers
+\end{verbatim}
+
+Các biểu đồ trình tự này minh họa luồng tương tác giữa các đối tượng trong ba use case quan trọng nhất của hệ thống: phát nhạc với tracking, tạo gợi ý thông minh, và chia sẻ playlist xã hội. Mỗi biểu đồ thể hiện rõ ràng trách nhiệm của từng lớp và cách chúng phối hợp để thực hiện chức năng nghiệp vụ. 

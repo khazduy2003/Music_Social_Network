@@ -16,8 +16,6 @@ public interface AdminService {
     Page<UserManagementDTO> getAllUsersForAdmin(Pageable pageable);
     UserManagementDTO getUserDetailsForAdmin(Long userId);
     void updateUserRole(Long userId, String role);
-    void banUser(Long userId, String reason, Long adminId);
-    void unbanUser(Long userId, Long adminId);
     void deleteUser(Long userId);
     
     // Content Management

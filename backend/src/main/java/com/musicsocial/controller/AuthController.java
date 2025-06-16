@@ -26,17 +26,33 @@ public class AuthController {
     private final JwtService jwtService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody RegisterDTO registerDTO) {
-        UserDTO user = authService.register(registerDTO);
-        String token = jwtService.generateToken(user);
-        return ResponseEntity.ok(new AuthResponse(user, token));
+    public ResponseEntity<?> register(@RequestBody RegisterDTO registerDTO) {
+        try {
+            UserDTO user = authService.register(registerDTO);
+            String token = jwtService.generateToken(user);
+            return ResponseEntity.ok(new AuthResponse(user, token));
+        } catch (IllegalArgumentException e) {
+            log.error("Registration failed for user: {}, error: {}", registerDTO.getUsername(), e.getMessage());
+            return ResponseEntity.status(400).body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            log.error("Unexpected error during registration for user: {}", registerDTO.getUsername(), e);
+            return ResponseEntity.status(500).body(Map.of("message", "Internal server error"));
+        }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginDTO loginDTO) {
-        UserDTO user = authService.login(loginDTO);
-        String token = jwtService.generateToken(user);
-        return ResponseEntity.ok(new AuthResponse(user, token));
+    public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
+        try {
+            UserDTO user = authService.login(loginDTO);
+            String token = jwtService.generateToken(user);
+            return ResponseEntity.ok(new AuthResponse(user, token));
+        } catch (IllegalArgumentException e) {
+            log.error("Login failed for user: {}, error: {}", loginDTO.getUsername(), e.getMessage());
+            return ResponseEntity.status(401).body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            log.error("Unexpected error during login for user: {}", loginDTO.getUsername(), e);
+            return ResponseEntity.status(500).body(Map.of("message", "Internal server error"));
+        }
     }
 
     @PostMapping("/logout")

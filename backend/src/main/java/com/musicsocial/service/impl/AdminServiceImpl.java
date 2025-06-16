@@ -155,41 +155,6 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public void banUser(Long userId, String reason, Long adminId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-        
-        User admin = userRepository.findById(adminId)
-                .orElseThrow(() -> new ResourceNotFoundException("Admin not found with id: " + adminId));
-        
-        validateAdminAccess(adminId);
-        
-        user.setBanReason(reason);
-        user.setBannedAt(LocalDateTime.now());
-        user.setBannedBy(admin.getUsername());
-        userRepository.save(user);
-        
-        log.info("Admin {} banning user {} for reason: {}", admin.getUsername(), user.getUsername(), reason);
-    }
-
-    @Override
-    @Transactional
-    public void unbanUser(Long userId, Long adminId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-        
-        validateAdminAccess(adminId);
-        
-        user.setBanReason(null);
-        user.setBannedAt(null);
-        user.setBannedBy(null);
-        userRepository.save(user);
-        
-        log.info("Admin {} unbanning user {}", adminId, user.getUsername());
-    }
-
-    @Override
-    @Transactional
     public void deleteUser(Long userId) {
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found with id: " + userId);

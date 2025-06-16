@@ -42,7 +42,7 @@ public interface TrackRepository extends JpaRepository<Track, Long> {
     @Query("SELECT t FROM Track t ORDER BY t.playCount DESC")
     Page<Track> findMostPlayed(Pageable pageable);
     
-    @Query("SELECT t FROM Track t ORDER BY t.rating DESC")
+    @Query("SELECT t FROM Track t ORDER BY t.playCount DESC")
     Page<Track> findTopRated(Pageable pageable);
 
     Optional<Track> findByJamendoId(String jamendoId);

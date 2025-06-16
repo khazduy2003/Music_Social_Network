@@ -28,6 +28,10 @@ const Login = () => {
   const [error, setError] = useState('');
 
   const handleChange = (e) => {
+    // Clear error when user starts typing
+    if (error) {
+      setError('');
+    }
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
@@ -44,7 +48,10 @@ const Login = () => {
       toast.success('Welcome back!');
       navigate('/');
     } catch (error) {
-      setError(error.response?.data?.message || 'Login failed');
+      console.error('Login error:', error);
+      const errorMessage = error.response?.data?.message || 'Login failed. Please check your credentials.';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

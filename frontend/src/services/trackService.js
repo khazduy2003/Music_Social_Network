@@ -14,9 +14,10 @@ export const trackService = {
   },
 
   // Get track by ID
-  getTrackById: async (id) => {
+  getTrackById: async (id, userId = null) => {
     try {
-      const response = await api.get(`/tracks/${id}`);
+      const currentUserId = userId || JSON.parse(localStorage.getItem('user'))?.id;
+      const response = await api.get(`/tracks/${id}${currentUserId ? `?userId=${currentUserId}` : ''}`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching track with ID ${id}:`, error);
@@ -110,7 +111,7 @@ export const trackService = {
       if (!userId) {
         throw new Error('User not authenticated');
       }
-      await api.post(`/tracks/${trackId}/like/${userId}`);
+      await api.post('/tracks/like', { userId, trackId });
       return true;
     } catch (error) {
       console.error('Error liking track:', error);
@@ -125,7 +126,7 @@ export const trackService = {
       if (!userId) {
         throw new Error('User not authenticated');
       }
-      await api.delete(`/tracks/${trackId}/like/${userId}`);
+      await api.post('/tracks/unlike', { userId, trackId });
       return true;
     } catch (error) {
       console.error('Error unliking track:', error);
@@ -143,7 +144,12 @@ export const trackService = {
       
       // Get the track to check if it's already liked
       const track = await trackService.getTrackById(trackId);
-      if (track.isLiked) {
+      
+      // Check if track is liked by checking the current user's liked tracks
+      const likedTracks = await trackService.getLikedTracks();
+      const isLiked = likedTracks.some(likedTrack => likedTrack.id === parseInt(trackId));
+      
+      if (isLiked) {
         await trackService.unlikeTrack(trackId);
       } else {
         await trackService.likeTrack(trackId);
@@ -256,24 +262,6 @@ export const trackService = {
   // Delete track
   deleteTrack: async (id) => {
     const response = await api.delete(`/tracks/${id}`);
-    return response.data;
-  },
-
-  // Rate track
-  rateTrack: async (trackId, rating) => {
-    const response = await api.post(`/tracks/${trackId}/rate`, { rating });
-    return response.data;
-  },
-
-  // Get track comments
-  getTrackComments: async (trackId) => {
-    const response = await api.get(`/tracks/${trackId}/comments`);
-    return response.data;
-  },
-
-  // Add comment to track
-  addComment: async (trackId, content) => {
-    const response = await api.post(`/tracks/${trackId}/comments`, { content });
     return response.data;
   },
 

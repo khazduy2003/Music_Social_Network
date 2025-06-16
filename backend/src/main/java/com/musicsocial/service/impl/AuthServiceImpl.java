@@ -7,7 +7,6 @@ import com.musicsocial.dto.auth.LoginDTO;
 import com.musicsocial.dto.auth.RegisterDTO;
 import com.musicsocial.dto.auth.AuthResponse;
 import com.musicsocial.dto.user.UserDTO;
-import com.musicsocial.dto.user.UserCreateDTO;
 import com.musicsocial.domain.User;
 import com.musicsocial.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -79,13 +78,31 @@ public class AuthServiceImpl implements AuthService {
     public UserDTO login(LoginDTO loginDTO) {
         log.info("Processing login for user: {}", loginDTO.getUsername());
         
-        // Get user by username
-        UserDTO user = userService.getUserByUsername(loginDTO.getUsername());
+        // Find user by username
+        User user = userRepository.findByUsername(loginDTO.getUsername())
+                .orElseThrow(() -> {
+                    log.warn("User not found: {}", loginDTO.getUsername());
+                    return new IllegalArgumentException("Invalid username or password");
+                });
         
-        // TODO: Add password validation here if needed
+        // Validate password
+        if (!user.getPassword().equals(loginDTO.getPassword())) {
+            log.warn("Invalid password for user: {}", loginDTO.getUsername());
+            throw new IllegalArgumentException("Invalid username or password");
+        }
         
         log.info("Login successful for user: {}", user.getUsername());
-        return user;
+        
+        // Convert to DTO
+        UserDTO userDTO = new UserDTO();
+        userDTO.setId(user.getId());
+        userDTO.setUsername(user.getUsername());
+        userDTO.setEmail(user.getEmail());
+        userDTO.setRole(user.getRole());
+        userDTO.setFollowersCount(0L);
+        userDTO.setFollowingCount(0L);
+        
+        return userDTO;
     }
 
     @Override

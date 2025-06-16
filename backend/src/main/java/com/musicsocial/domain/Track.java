@@ -42,12 +42,6 @@ public class Track {
     @Column(name = "play_count")
     private Integer playCount = 0;
 
-    @Column(name = "rating")
-    private Double rating = 0.0;
-
-    @Column(name = "rating_count")
-    private Integer ratingCount = 0;
-
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -72,22 +66,6 @@ public class Track {
 
     public void setLikedTracks(Set<User> likedBy) {
         this.likedBy = likedBy;
-    }
-
-    public Double getAverageRating() {
-        return rating;
-    }
-
-    public void setAverageRating(Double averageRating) {
-        this.rating = averageRating;
-    }
-
-    public Integer getRatingCount() {
-        return ratingCount;
-    }
-
-    public void setRatingCount(Integer ratingCount) {
-        this.ratingCount = ratingCount;
     }
 
     public Integer getPlayCount() {

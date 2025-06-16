@@ -34,12 +34,6 @@ public class User {
     private String profileImageUrl;
     private String role = "USER";
 
-    // Admin-related fields
-    private String banReason;
-    private LocalDateTime bannedAt;
-    private String bannedBy;
-    private LocalDateTime lastLoginAt;
-
     @ManyToMany
     @JoinTable(
         name = "user_followers",

@@ -35,7 +35,6 @@ import { usePlayerContext } from '../contexts/PlayerContext';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
 import ShareModal from '../components/ShareModal';
-//import TrackComments from '../components/TrackComments';
 
 const TrackDetail = () => {
   const { id } = useParams();
@@ -321,8 +320,6 @@ const TrackDetail = () => {
                 <QueueMusic />
               </IconButton>
               
-              
-              
               <IconButton 
                 onClick={handleShare}
                 sx={{ 
@@ -384,11 +381,6 @@ const TrackDetail = () => {
           </Box>
         </Grid>
       </Grid>
-      
-      {/* Comments Section 
-      <TrackComments trackId={track.id} trackTitle={track.title} />
-      */}
-      
       
       {/* Share Modal */}
       <ShareModal 

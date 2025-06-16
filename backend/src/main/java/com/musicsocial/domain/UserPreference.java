@@ -28,21 +28,6 @@ public class UserPreference {
     @Column(name = "artist")
     private Set<String> preferredArtists = new HashSet<>();
 
-    @Column(name = "email_notifications")
-    private Boolean emailNotifications = true;
-    
-    @Column(name = "push_notifications")
-    private Boolean pushNotifications = true;
-    
-    @Column(name = "privacy_level")
-    private String privacyLevel = "public";
-    
-    @Column(name = "auto_play")
-    private Boolean autoPlay = true;
-    
-    @Column(name = "audio_quality")
-    private String audioQuality = "high";
-
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

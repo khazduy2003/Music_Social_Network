@@ -29,10 +29,6 @@ public interface UserMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "role", ignore = true)
-    @Mapping(target = "banReason", ignore = true)
-    @Mapping(target = "bannedAt", ignore = true)
-    @Mapping(target = "bannedBy", ignore = true)
-    @Mapping(target = "lastLoginAt", ignore = true)
     @Mapping(target = "listeningHistory", ignore = true)
     User toEntity(UserCreateDTO dto);
     
@@ -48,10 +44,6 @@ public interface UserMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "role", ignore = true)
-    @Mapping(target = "banReason", ignore = true)
-    @Mapping(target = "bannedAt", ignore = true)
-    @Mapping(target = "bannedBy", ignore = true)
-    @Mapping(target = "lastLoginAt", ignore = true)
     @Mapping(target = "listeningHistory", ignore = true)
     void updateEntityFromDTO(UserUpdateDTO dto, @MappingTarget User user);
 } 

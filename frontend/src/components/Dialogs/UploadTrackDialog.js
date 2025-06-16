@@ -390,7 +390,7 @@ const UploadTrackDialog = ({ open, onClose, onUpload }) => {
               </Grid>
 
               <Grid item xs={12} sm={6}>
-                <FormControl fullWidth disabled={loading}>
+                <FormControl fullWidth disabled={loading} sx={{ minWidth: 300 }}>
                   <InputLabel sx={{ color: 'rgba(255,255,255,0.7)' }}>Genre</InputLabel>
                   <Select
                     value={trackData.genre}
@@ -418,6 +418,8 @@ const UploadTrackDialog = ({ open, onClose, onUpload }) => {
                   label="Album (Optional)"
                   value={trackData.album}
                   onChange={(e) => handleInputChange('album', e.target.value)}
+                  multiline
+                  rows={3}
                   disabled={loading}
                   sx={{
                     '& .MuiOutlinedInput-root': {

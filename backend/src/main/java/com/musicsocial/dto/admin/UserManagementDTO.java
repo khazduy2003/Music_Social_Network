@@ -19,7 +19,6 @@ public class UserManagementDTO {
     private String role;
     private Boolean isActive;
     private LocalDateTime createdAt;
-    private LocalDateTime lastLoginAt;
     
     // Statistics
     private Long tracksCount;
@@ -27,9 +26,4 @@ public class UserManagementDTO {
     private Long followersCount;
     private Long followingCount;
     private Long totalListeningTime;
-    
-    // Admin actions
-    private String banReason;
-    private LocalDateTime bannedAt;
-    private String bannedBy;
 } 
